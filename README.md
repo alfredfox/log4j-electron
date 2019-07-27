@@ -1,1 +1,2 @@
-# log4j-electron
+log4j catalog Electron edition
+------------------------------

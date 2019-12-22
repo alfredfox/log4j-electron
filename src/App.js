@@ -1,4 +1,5 @@
 import React from 'react';
+
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
@@ -6,8 +7,9 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import Grid from '@material-ui/core/Grid';
-
 import ProductsTable from './ProductsTable'
+import axios from 'axios'
+const fs = window.require('fs');
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -32,8 +34,50 @@ TabPanel.propTypes = {
   value: PropTypes.any.isRequired,
 };
 
+const read = (callback) => {
+  try {
+    const content = fs.readFileSync('application.properties', 'UTF-8')
+
+    //  parse application properties from string to json
+    const json = content.split('\n').reduce((acc, curr) => {
+      const [k, v] = curr.split('=')
+      return {
+        ...acc,
+        [k]: v
+      }
+    }, {})
+
+    return callback(json)
+  } catch(error) {
+    throw new Error(JSON.stringify(error))
+  }
+}
+
 export default function App() {
   const [value, setValue] = React.useState(0);
+  const [gitInfo, setGitInfo] = React.useState();
+  const [gitResponse, setGitResponse] = React.useState()
+
+  React.useEffect(() => {
+    read((result) => {
+      setGitInfo(result)
+    });
+  }, [])
+
+  React.useEffect(() => {
+    if (!gitInfo) return;
+
+    axios.get("https://api.github.com", {
+      headers: {
+        Authorization: `Basic ${btoa(`${gitInfo.gitUserName}:${gitInfo.gitPassword}`)}`
+      }
+    }).then(response => {
+      setGitResponse(response.data)
+    }).catch(error => {
+      console.log(error)
+    })
+
+  }, [gitInfo])
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -41,6 +85,13 @@ export default function App() {
 
   return (
     <Grid container>
+      <pre>
+        {JSON.stringify(gitInfo, null, 4)}
+      </pre>
+      <pre>
+        {JSON.stringify(gitResponse, null, 4)}
+      </pre>
+
       <Grid item xs={12}>
         <AppBar position="static">
           <Tabs value={value} onChange={handleChange}>

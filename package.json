@@ -130,11 +130,15 @@
     ]
   },
   "babel": {
+    "plugins": [
+      "@babel/plugin-proposal-optional-chaining"
+    ],
     "presets": [
       "react-app"
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.7.5",
     "concurrently": "^4.1.1",
     "electron": "^5.0.8",
     "electron-builder": "^21.1.5",

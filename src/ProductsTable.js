@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -58,15 +59,20 @@ const useStyles = makeStyles(theme => ({
 
 export default function ProductsTable() {
   const classes = useStyles();
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [products, setProducts] = React.useState([])
+  const [events, setEvents] = React.useState([])
+  const [editProduct, setEditProduct] = React.useState()
 
   const [dialog, setDialog] = React.useState({ delete: false, product: false});
 
   useEffect(() => {
-    axios.get('products.json')
-      .then(response => setProducts(response.data.Records))
+    axios.get('catalog.json')
+      .then(({data}) => {
+        setProducts(data.products)
+        setEvents(data.events)
+      })
       .catch(error => console.log(error))
   },[]);
 
@@ -79,9 +85,18 @@ export default function ProductsTable() {
     setPage(0);
   };
 
-  const handleEditClick = (rowId) => {
+  const handleAssignedEventChange = eventName => {
+    const events = editProduct.events.includes(eventName)
+      ? editProduct.events.filter(item => item !== eventName)
+      : [...editProduct.events, eventName]
+
+    setEditProduct({...editProduct, events})
+  }
+
+  const handleEditClick = (rowData) => {
     setDialog({...dialog, product: true})
-    console.log(rowId)
+    setEditProduct(rowData)
+    console.log(rowData)
   }
 
   const handleDeleteClick = (rowId) => {
@@ -89,8 +104,38 @@ export default function ProductsTable() {
     console.log(rowId)
   }
 
+  const handleInputChange = e => {
+    setEditProduct({...editProduct, [e.target.id]: e.target.value})
+  }
+
+  const handleSave = e => {
+    let newProducts = [];
+    if (editProduct.id) {
+      newProducts = products.map(product => {
+        if (product.id === editProduct.id) {
+          return editProduct;
+        }
+
+        return product;
+      })
+    }
+    else {
+      newProducts = [...products, editProduct]
+    }
+
+    setEditProduct()
+    setProducts(newProducts);
+    setDialog({...dialog, product: false})
+  }
+
   return (
     <Paper className={classes.root}>
+      <pre>
+        {JSON.stringify(editProduct, null, 4)}
+      </pre>
+      <pre>
+        {JSON.stringify(products, null, 4)}
+      </pre>
       <div className={classes.tableWrapper}>
       <Toolbar>
         <Typography variant="h6">
@@ -117,13 +162,14 @@ export default function ProductsTable() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
                     const value = row[column.id];
+                    // console.log(value)
                       return (column.id === 'actions') ? (
                         <TableCell>
                           <Button
                             variant="outlined"
                             color="primary"
                             className={classes.button}
-                            onClick={(e) => handleEditClick(row.id)}
+                            onClick={(e) => handleEditClick(row)}
                           >
                             Edit
                           </Button>
@@ -162,23 +208,59 @@ export default function ProductsTable() {
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <TextField label="Name" fullWidth />
+              <TextField
+                id="name"
+                label="Name"
+                fullWidth
+                value={editProduct?.name || ''}
+                onChange={handleInputChange}
+              />
             </Grid>
             <Grid item xs={12}>
-              <TextField label="Display Name" fullWidth />
+              <TextField
+                id="displayName"
+                label="Display Name"
+                fullWidth
+                value={editProduct?.displayName || ''}
+                onChange={handleInputChange}
+              />
             </Grid>
             <Grid item xs={12}>
-              <TextField label="Description" fullWidth />
+              <TextField
+                id="description"
+                label="Description"
+                fullWidth
+                value={editProduct?.description || ''}
+                onChange={handleInputChange}
+              />
             </Grid>
             <Grid item xs={12}>
-              Whatever
+              <p>Assigned Events</p>
+              {
+                events.map(item => (
+                  <div>
+                    <Checkbox
+                      checked={editProduct?.events?.includes(item.name)}
+                      onChange={() => handleAssignedEventChange(item.name)}
+                      color="primary"
+                      inputProps={{ 'aria-label': 'primary checkbox' }}
+                    />
+                    {item.displayName}
+                  </div>
+                ))
+              }
             </Grid>
+
           </Grid>
           <DialogActions>
             <Button onClick={() => setDialog({...dialog, product: false})} variant="contained">
               Cancel
             </Button>
-            <Button onClick={() => setDialog({...dialog, product: false})} color="primary" variant="contained">
+            <Button
+              onClick={handleSave}
+              color="primary"
+              variant="contained"
+            >
               Save
             </Button>
           </DialogActions>

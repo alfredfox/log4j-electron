@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -20,6 +20,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import { AppContext, actionTypes } from './AppContext';
 
 const columns = [
   {
@@ -58,23 +59,15 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function ProductsTable() {
-  const classes = useStyles();
+  const {state, dispatch} = useContext(AppContext)
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [products, setProducts] = React.useState([])
-  const [events, setEvents] = React.useState([])
-  const [editProduct, setEditProduct] = React.useState()
+  // const [catalog, setCatalog] = React.useState(initialState)
+  const [product, setProduct] = React.useState()
+
+  const classes = useStyles();
 
   const [dialog, setDialog] = React.useState({ delete: false, product: false});
-
-  useEffect(() => {
-    axios.get('catalog.json')
-      .then(({data}) => {
-        setProducts(data.products)
-        setEvents(data.events)
-      })
-      .catch(error => console.log(error))
-  },[]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -86,16 +79,16 @@ export default function ProductsTable() {
   };
 
   const handleAssignedEventChange = eventName => {
-    const events = editProduct.events.includes(eventName)
-      ? editProduct.events.filter(item => item !== eventName)
-      : [...editProduct.events, eventName]
+    const events = product.events.includes(eventName)
+      ? product.events.filter(item => item !== eventName)
+      : [...product.events, eventName]
 
-    setEditProduct({...editProduct, events})
+    setProduct({...product, events})
   }
 
   const handleEditClick = (rowData) => {
     setDialog({...dialog, product: true})
-    setEditProduct(rowData)
+    setProduct(rowData)
     console.log(rowData)
   }
 
@@ -105,36 +98,58 @@ export default function ProductsTable() {
   }
 
   const handleInputChange = e => {
-    setEditProduct({...editProduct, [e.target.id]: e.target.value})
+    setProduct({...product, [e.target.id]: e.target.value})
   }
 
-  const handleSave = e => {
-    let newProducts = [];
-    if (editProduct.id) {
-      newProducts = products.map(product => {
-        if (product.id === editProduct.id) {
-          return editProduct;
-        }
+  // const handleCommitClick = e => {
+  //   axios.put('https://api.github.com/repos/mlubovac/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json', {
+  //     "message": "updating...",
+  //     "content": btoa(JSON.stringify(catalog.content)),
+  //     "sha": catalog.sha
+  //   },{
+  //     headers: {
+  //       'Authorization': 'Basic bWx1Ym92YWM6Q253ODRGcmk0NS4='
+  //     },
+  //   })
+  //   .then(response => {
+  //     console.log('SUCCESS', response)
+  //   })
+  //   .catch(error => console.log(error))
+  // }
 
-        return product;
+  const handleSave = () => {
+    if (product.id) {
+      dispatch({
+        type: actionTypes.UPDATE_PRODUCT,
+        payload: product
       })
     }
     else {
-      newProducts = [...products, editProduct]
+      dispatch({
+        type: actionTypes.CREATE_PRODUCT,
+        payload: product
+      })
     }
+  }
 
-    setEditProduct()
-    setProducts(newProducts);
-    setDialog({...dialog, product: false})
+  if (!state.products) {
+    return(
+      <div>&#128169; &#128169; &#128169; :)</div>
+    )
   }
 
   return (
     <Paper className={classes.root}>
+      <Button
+        variant="outlined"
+        color="primary"
+        className={classes.button}
+        // onClick={handleCommitClick}
+        >
+        Commit
+      </Button>
       <pre>
-        {JSON.stringify(editProduct, null, 4)}
-      </pre>
-      <pre>
-        {JSON.stringify(products, null, 4)}
+        {JSON.stringify(product, null, 4)}
       </pre>
       <div className={classes.tableWrapper}>
       <Toolbar>
@@ -157,7 +172,7 @@ export default function ProductsTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+            {state?.products?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
               return (
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
@@ -197,7 +212,7 @@ export default function ProductsTable() {
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={products.length}
+        count={state?.products?.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onChangePage={handleChangePage}
@@ -212,7 +227,7 @@ export default function ProductsTable() {
                 id="name"
                 label="Name"
                 fullWidth
-                value={editProduct?.name || ''}
+                value={product?.name || ''}
                 onChange={handleInputChange}
               />
             </Grid>
@@ -221,7 +236,7 @@ export default function ProductsTable() {
                 id="displayName"
                 label="Display Name"
                 fullWidth
-                value={editProduct?.displayName || ''}
+                value={product?.displayName || ''}
                 onChange={handleInputChange}
               />
             </Grid>
@@ -230,17 +245,17 @@ export default function ProductsTable() {
                 id="description"
                 label="Description"
                 fullWidth
-                value={editProduct?.description || ''}
+                value={product?.description || ''}
                 onChange={handleInputChange}
               />
             </Grid>
             <Grid item xs={12}>
               <p>Assigned Events</p>
               {
-                events.map(item => (
+                state?.events?.map(item => (
                   <div>
                     <Checkbox
-                      checked={editProduct?.events?.includes(item.name)}
+                      checked={product?.events?.includes(item.name)}
                       onChange={() => handleAssignedEventChange(item.name)}
                       color="primary"
                       inputProps={{ 'aria-label': 'primary checkbox' }}
@@ -288,6 +303,12 @@ export default function ProductsTable() {
           </Button>
         </DialogActions>
       </Dialog>
+      <pre>
+        {JSON.stringify(state.products, null, 4)}
+      </pre>
+      <pre>
+        {JSON.stringify(state.events, null, 4)}
+      </pre>
     </Paper>
   );
 }

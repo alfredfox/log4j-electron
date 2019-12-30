@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext, useEffect, useMemo, useReducer, useState} from 'react';
 
 import PropTypes from 'prop-types';
 import AppBar from '@material-ui/core/AppBar';
@@ -10,6 +10,13 @@ import Grid from '@material-ui/core/Grid';
 import ProductsTable from './ProductsTable'
 import axios from 'axios'
 // const fs = window.require('fs');
+
+import {
+  AppContext,
+  initialState,
+  actionTypes,
+} from './AppContext';
+import { reducer } from './reducer';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -54,9 +61,25 @@ TabPanel.propTypes = {
 // }
 
 export default function App() {
+
+  const [state, dispatch] = useReducer(reducer, initialState);
+
   const [value, setValue] = React.useState(0);
   const [gitInfo, setGitInfo] = React.useState();
   const [gitResponse, setGitResponse] = React.useState()
+
+  // const appContext = useMemo(
+  //   () => ({
+  //     state,
+  //     dispatch,
+  //   }),
+  //   [state, dispatch],
+  // );
+
+  const appContext = {
+      state,
+      dispatch,
+    };
 
   // React.useEffect(() => {
   //   read((result) => {
@@ -64,59 +87,64 @@ export default function App() {
   //   });
   // }, [])
 
-  // React.useEffect(() => {
-  //   if (!gitInfo) return;
 
-  //   axios.get("https://api.github.com/user", {
-  //     headers: {
-  //       Authorization: `Basic ${btoa(`${gitInfo.gitUserName}:${gitInfo.gitPasswordz}`)}`
-  //     }
-  //   }).then(response => {
-  //     setGitResponse(response.data)
-  //   }).catch(error => {
-  //     console.log(error)
-  //   })
+  useEffect(() => {
+    axios.get('https://api.github.com/repos/mlubovac/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json', {
+      headers: {
+        'Authorization': 'Basic bWx1Ym92YWM6Q253ODRGcmk0NS4='
+      }
+    })
+    .then(({ data }) => {
 
-  // }, [gitInfo])
+      const { products, categories, events, attributes } = JSON.parse(atob(data.content))
+
+      dispatch({
+        type: actionTypes.GET_CATALOG,
+        payload: {
+          sha: data.sha,
+          products,
+          categories,
+          events,
+          attributes
+        }
+      })
+    })
+    .catch(error => console.log(error))
+  },[]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   return (
-    <Grid container>
-      <pre>
-        {JSON.stringify(gitInfo, null, 4)}
-      </pre>
-      <pre>
-        {JSON.stringify(gitResponse, null, 4)}
-      </pre>
-
-      <Grid item xs={12}>
-        <AppBar position="static">
-          <Tabs value={value} onChange={handleChange}>
-            <Tab label="Products" />
-            <Tab label="Categories" />
-            <Tab label="Events" />
-            <Tab label="Attributes" />
-          </Tabs>
-        </AppBar>
+    <AppContext.Provider value={appContext}>
+      <Grid container>
+        <Grid item xs={12}>
+          <AppBar position="static">
+            <Tabs value={value} onChange={handleChange}>
+              <Tab label="Products" />
+              <Tab label="Categories" />
+              <Tab label="Events" />
+              <Tab label="Attributes" />
+            </Tabs>
+          </AppBar>
+        </Grid>
+        <Grid item xs={12}>
+          <TabPanel value={value} index={0}>
+            <ProductsTable />
+          </TabPanel>
+          <TabPanel value={value} index={1}>
+            Categories
+          </TabPanel>
+          <TabPanel value={value} index={2}>
+            Events
+          </TabPanel>
+          <TabPanel value={value} index={3}>
+            Attributes
+          </TabPanel>
+        </Grid>
       </Grid>
-      <Grid item xs={12}>
-        <TabPanel value={value} index={0}>
-          <ProductsTable />
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          Categories
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          Events
-        </TabPanel>
-        <TabPanel value={value} index={3}>
-          Attributes
-        </TabPanel>
-      </Grid>
-    </Grid>
+    </AppContext.Provider>
   );
 }
 

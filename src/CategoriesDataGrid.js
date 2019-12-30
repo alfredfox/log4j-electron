@@ -115,7 +115,7 @@ export default function CategoriesDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
+                          {value}
                         </TableCell>
                       )
                   })}
@@ -219,6 +219,9 @@ export default function CategoriesDataGrid() {
           </Button>
         </DialogActions>
       </Dialog> */}
+      <pre>
+        {JSON.stringify(categories, null, 4)}
+      </pre>
     </Paper>
   );
 }

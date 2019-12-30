@@ -39,6 +39,12 @@ const columns = [
     minWidth: 170,
   },
   {
+    id: 'attributes',
+    label: 'Assigned Attributes',
+    minWidth: 170,
+    format: true
+  },
+  {
     id: 'actions',
     label: '',
     minWidth: 200
@@ -115,7 +121,7 @@ export default function EventsDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
+                          {column.format && Array.isArray(value) ? JSON.stringify(value) : value}
                         </TableCell>
                       )
                   })}
@@ -219,6 +225,9 @@ export default function EventsDataGrid() {
           </Button>
         </DialogActions>
       </Dialog> */}
+      <pre>
+        {JSON.stringify(events, null, 4)}
+      </pre>
     </Paper>
   );
 }

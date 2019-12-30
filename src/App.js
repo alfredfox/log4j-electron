@@ -7,7 +7,10 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import Grid from '@material-ui/core/Grid';
-import ProductsTable from './ProductsTable'
+import ProductsDataGrid from './ProductsDataGrid'
+import CategoriesDataGrid from './CategoriesDataGrid'
+import EventsDataGrid from './EventsDataGrid'
+import AttributesDataGrid from './AttributesDataGrid'
 import axios from 'axios'
 // const fs = window.require('fs');
 
@@ -68,18 +71,9 @@ export default function App() {
   const [gitInfo, setGitInfo] = React.useState();
   const [gitResponse, setGitResponse] = React.useState()
 
-  // const appContext = useMemo(
-  //   () => ({
-  //     state,
-  //     dispatch,
-  //   }),
-  //   [state, dispatch],
-  // );
+  const appContext = useMemo(() => ([state, dispatch]), [state, dispatch]);
 
-  const appContext = {
-      state,
-      dispatch,
-    };
+  // const appContext = { state, dispatch };
 
   // React.useEffect(() => {
   //   read((result) => {
@@ -89,9 +83,9 @@ export default function App() {
 
 
   useEffect(() => {
-    axios.get('https://api.github.com/repos/mlubovac/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json', {
+    axios.get(`https://api.github.com/repos/${state.git.username}/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json`, {
       headers: {
-        'Authorization': 'Basic bWx1Ym92YWM6Q253ODRGcmk0NS4='
+        'Authorization': `Basic ${state.git.accessToken}`
       }
     })
     .then(({ data }) => {
@@ -110,7 +104,23 @@ export default function App() {
       })
     })
     .catch(error => console.log(error))
-  },[]);
+  },[state.git.accessToken, state.git.username]);
+
+  // const handleCommitClick = e => {
+  //   axios.put(`https://api.github.com/repos/${state.git.username}/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json`, {
+  //     "message": "updating...",
+  //     "content": btoa(JSON.stringify(catalog.content)),
+  //     "sha": catalog.sha
+  //   },{
+  //     headers: {
+  //       'Authorization': `Basic ${state.git.accessToken}`
+  //     },
+  //   })
+  //   .then(response => {
+  //     console.log('SUCCESS', response)
+  //   })
+  //   .catch(error => console.log(error))
+  // }
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -131,16 +141,16 @@ export default function App() {
         </Grid>
         <Grid item xs={12}>
           <TabPanel value={value} index={0}>
-            <ProductsTable />
+            <ProductsDataGrid />
           </TabPanel>
           <TabPanel value={value} index={1}>
-            Categories
+            <CategoriesDataGrid />
           </TabPanel>
           <TabPanel value={value} index={2}>
-            Events
+            <EventsDataGrid />
           </TabPanel>
           <TabPanel value={value} index={3}>
-            Attributes
+            <AttributesDataGrid />
           </TabPanel>
         </Grid>
       </Grid>

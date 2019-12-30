@@ -58,11 +58,11 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function ProductsTable() {
-  const {state, dispatch} = useContext(AppContext)
+export default function ProductsDataGrid() {
+  const [state, dispatch] = useContext(AppContext)
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  // const [catalog, setCatalog] = React.useState(initialState)
+
   const [product, setProduct] = React.useState()
 
   const classes = useStyles();
@@ -101,22 +101,6 @@ export default function ProductsTable() {
     setProduct({...product, [e.target.id]: e.target.value})
   }
 
-  // const handleCommitClick = e => {
-  //   axios.put('https://api.github.com/repos/mlubovac/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json', {
-  //     "message": "updating...",
-  //     "content": btoa(JSON.stringify(catalog.content)),
-  //     "sha": catalog.sha
-  //   },{
-  //     headers: {
-  //       'Authorization': 'Basic bWx1Ym92YWM6Q253ODRGcmk0NS4='
-  //     },
-  //   })
-  //   .then(response => {
-  //     console.log('SUCCESS', response)
-  //   })
-  //   .catch(error => console.log(error))
-  // }
-
   const handleSave = () => {
     if (product.id) {
       dispatch({
@@ -130,12 +114,8 @@ export default function ProductsTable() {
         payload: product
       })
     }
-  }
 
-  if (!state.products) {
-    return(
-      <div>&#128169; &#128169; &#128169; :)</div>
-    )
+    setDialog({...dialog, product: false})
   }
 
   return (

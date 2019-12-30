@@ -272,12 +272,6 @@ export default function ProductsDataGrid() {
           </Button>
         </DialogActions>
       </Dialog>
-      <pre>
-        {JSON.stringify(state.products, null, 4)}
-      </pre>
-      <pre>
-        {JSON.stringify(state.events, null, 4)}
-      </pre>
     </Paper>
   );
 }

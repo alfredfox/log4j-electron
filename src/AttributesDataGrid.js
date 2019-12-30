@@ -41,36 +41,36 @@ const columns = [
   {
     id: 'dataType',
     label: 'Data Type',
-    minWidth: 170,
+    minWidth: 80,
   },
   {
     id: 'indexed',
     label: 'Indexed',
-    minWidth: 170,
+    minWidth: 80,
     format: true
   },
   {
     id: 'sortable',
     label: 'Sortable',
-    minWidth: 170,
+    minWidth: 80,
     format: true
   },
   {
     id: 'required',
     label: 'Required',
-    minWidth: 170,
+    minWidth: 80,
     format: true
   },
   {
     id: 'requestContext',
     label: 'Request Context',
-    minWidth: 170,
+    minWidth: 120,
     format: true
   },
   {
     id: 'constraints',
     label: 'Constraints',
-    minWidth: 170,
+    // minWidth: 170,
     format: true
   },
   {

@@ -15,7 +15,6 @@ import AttributesDataGrid from './AttributesDataGrid'
 import CategoriesDataGrid from './CategoriesDataGrid'
 import EventsDataGrid from './EventsDataGrid'
 import ProductsDataGrid from './ProductsDataGrid'
-// const fs = window.require('fs');
 
 import {
   AppContext,
@@ -24,17 +23,19 @@ import {
 } from './AppContext';
 import { reducer } from './reducer';
 
+const fs = window.require('fs');
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
   return (
     <Typography
-      component="div"
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
+    component="div"
+    role="tabpanel"
+    hidden={value !== index}
+    id={`simple-tabpanel-${index}`}
+    aria-labelledby={`simple-tab-${index}`}
+    {...other}
     >
       {value === index && <Box p={3}>{children}</Box>}
     </Typography>
@@ -47,24 +48,24 @@ TabPanel.propTypes = {
   value: PropTypes.any.isRequired,
 };
 
-// const read = (callback) => {
-//   try {
-//     const content = fs.readFileSync('application.properties', 'UTF-8')
+const read = (callback) => {
+  try {
+    const content = fs.readFileSync('application.properties', 'UTF-8')
 
-//     //  parse application properties from string to json
-//     const json = content.split('\n').reduce((acc, curr) => {
-//       const [k, v] = curr.split('=')
-//       return {
-//         ...acc,
-//         [k]: v
-//       }
-//     }, {})
+    //  parse application properties from string to json
+    const json = content.split('\n').reduce((acc, curr) => {
+      const [k, v] = curr.split('=')
+      return {
+        ...acc,
+        [k]: v
+      }
+    }, {})
 
-//     return callback(json)
-//   } catch(error) {
-//     throw new Error(JSON.stringify(error))
-//   }
-// }
+    return callback(json)
+  } catch(error) {
+    throw new Error(JSON.stringify(error))
+  }
+}
 
 const useStyles = makeStyles(theme => ({
   fabRoot: {
@@ -79,26 +80,27 @@ export default function App() {
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const [value, setValue] = React.useState(0);
-  const [gitInfo, setGitInfo] = React.useState();
-  const [gitResponse, setGitResponse] = React.useState()
+  const [tabIndex, setTabIndex] = React.useState(0);
 
   const appContext = useMemo(() => ([state, dispatch]), [state, dispatch]);
 
-
   const classes = useStyles();
 
-  // const appContext = { state, dispatch };
-
-  // React.useEffect(() => {
-  //   read((result) => {
-  //     setGitInfo(result)
-  //   });
-  // }, [])
+  React.useEffect(() => {
+    read((result) => {
+      dispatch({
+        type: actionTypes.SET_GIT_CREDENTIALS,
+        payload: result
+      })
+    });
+  }, [])
 
 
   useEffect(() => {
-    axios.get(`https://api.github.com/repos/${state.git.username}/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json`, {
+
+    if (!state.git) return;
+
+    axios.get(`https://api.github.com/repos/${state.git.username}/${state.git.repository}/contents/${state.git.catalogPath}`, {
       headers: {
         'Authorization': `Basic ${state.git.accessToken}`
       }
@@ -119,7 +121,7 @@ export default function App() {
       })
     })
     .catch(error => console.log(error))
-  },[state.git.accessToken, state.git.username]);
+  },[state.git]);
 
   // const handleCommitClick = e => {
   //   axios.put(`https://api.github.com/repos/${state.git.username}/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json`, {
@@ -137,8 +139,8 @@ export default function App() {
   //   .catch(error => console.log(error))
   // }
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+  const handleTabChange = (event, index) => {
+    setTabIndex(index);
   };
 
   return (
@@ -154,7 +156,7 @@ export default function App() {
       <Grid container>
         <Grid item xs={12}>
           <AppBar position="static">
-            <Tabs value={value} onChange={handleChange}>
+            <Tabs value={tabIndex} onChange={handleTabChange}>
               <Tab label="Products" />
               <Tab label="Categories" />
               <Tab label="Events" />
@@ -163,16 +165,16 @@ export default function App() {
           </AppBar>
         </Grid>
         <Grid item xs={12}>
-          <TabPanel value={value} index={0}>
+          <TabPanel value={tabIndex} index={0}>
             <ProductsDataGrid />
           </TabPanel>
-          <TabPanel value={value} index={1}>
+          <TabPanel value={tabIndex} index={1}>
             <CategoriesDataGrid />
           </TabPanel>
-          <TabPanel value={value} index={2}>
+          <TabPanel value={tabIndex} index={2}>
             <EventsDataGrid />
           </TabPanel>
-          <TabPanel value={value} index={3}>
+          <TabPanel value={tabIndex} index={3}>
             <AttributesDataGrid />
           </TabPanel>
         </Grid>

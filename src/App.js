@@ -1,17 +1,20 @@
 import React, {useContext, useEffect, useMemo, useReducer, useState} from 'react';
-
 import PropTypes from 'prop-types';
+
+import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import Grid from '@material-ui/core/Grid';
-import ProductsDataGrid from './ProductsDataGrid'
+import Fab from '@material-ui/core/Fab';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import Typography from '@material-ui/core/Typography';
+import axios from 'axios'
+
+import AttributesDataGrid from './AttributesDataGrid'
 import CategoriesDataGrid from './CategoriesDataGrid'
 import EventsDataGrid from './EventsDataGrid'
-import AttributesDataGrid from './AttributesDataGrid'
-import axios from 'axios'
+import ProductsDataGrid from './ProductsDataGrid'
 // const fs = window.require('fs');
 
 import {
@@ -63,6 +66,15 @@ TabPanel.propTypes = {
 //   }
 // }
 
+const useStyles = makeStyles(theme => ({
+  fabRoot: {
+    position: 'absolute',
+    top: '4.5rem',
+    right: '2rem',
+    zIndex: 999
+  }
+}));
+
 export default function App() {
 
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -72,6 +84,9 @@ export default function App() {
   const [gitResponse, setGitResponse] = React.useState()
 
   const appContext = useMemo(() => ([state, dispatch]), [state, dispatch]);
+
+
+  const classes = useStyles();
 
   // const appContext = { state, dispatch };
 
@@ -128,6 +143,14 @@ export default function App() {
 
   return (
     <AppContext.Provider value={appContext}>
+      <Fab
+        className={classes.fabRoot}
+        color="primary"
+        variant="extended"
+        onClick={() => {}}
+      >
+        Save Changes
+      </Fab>
       <Grid container>
         <Grid item xs={12}>
           <AppBar position="static">

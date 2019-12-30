@@ -120,17 +120,6 @@ export default function ProductsDataGrid() {
 
   return (
     <Paper className={classes.root}>
-      <Button
-        variant="outlined"
-        color="primary"
-        className={classes.button}
-        // onClick={handleCommitClick}
-        >
-        Commit
-      </Button>
-      <pre>
-        {JSON.stringify(product, null, 4)}
-      </pre>
       <div className={classes.tableWrapper}>
       <Toolbar>
         <Typography variant="h6">
@@ -179,7 +168,7 @@ export default function ProductsDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
+                          {value}
                         </TableCell>
                       )
                   })}

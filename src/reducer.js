@@ -1,10 +1,17 @@
-import { initialState, actionTypes } from './AppContext';
+import { actionTypes } from './AppContext';
 
 export const reducer = (state, action) => {
 
   const { type, payload } = action;
 
   switch (type) {
+
+    case actionTypes.SET_GIT_CREDENTIALS:
+      return {
+        ...state,
+        git: payload
+      }
+
     case actionTypes.GET_CATALOG:
       return {
         ...state,

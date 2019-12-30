@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -20,6 +20,7 @@ import TableRow from '@material-ui/core/TableRow';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import { AppContext, actionTypes } from './AppContext';
 
 const columns = [
   {
@@ -36,6 +37,12 @@ const columns = [
     id: 'description',
     label: 'Description',
     minWidth: 170,
+  },
+  {
+    id: 'attributes',
+    label: 'Assigned Attributes',
+    minWidth: 170,
+    format: true
   },
   {
     id: 'actions',
@@ -57,89 +64,19 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function ProductsTable() {
+export default function EventsDataGrid() {
+  const [{ events, attributes }, dispatch] = useContext(AppContext)
   const classes = useStyles();
+
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [products, setProducts] = React.useState([])
-  const [events, setEvents] = React.useState([])
-  const [editProduct, setEditProduct] = React.useState()
-
-  const [dialog, setDialog] = React.useState({ delete: false, product: false});
-
-  useEffect(() => {
-    axios.get('catalog.json')
-      .then(({data}) => {
-        setProducts(data.products)
-        setEvents(data.events)
-      })
-      .catch(error => console.log(error))
-  },[]);
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = event => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
-
-  const handleAssignedEventChange = eventName => {
-    const events = editProduct.events.includes(eventName)
-      ? editProduct.events.filter(item => item !== eventName)
-      : [...editProduct.events, eventName]
-
-    setEditProduct({...editProduct, events})
-  }
-
-  const handleEditClick = (rowData) => {
-    setDialog({...dialog, product: true})
-    setEditProduct(rowData)
-    console.log(rowData)
-  }
-
-  const handleDeleteClick = (rowId) => {
-    setDialog({...dialog, delete: true})
-    console.log(rowId)
-  }
-
-  const handleInputChange = e => {
-    setEditProduct({...editProduct, [e.target.id]: e.target.value})
-  }
-
-  const handleSave = e => {
-    let newProducts = [];
-    if (editProduct.id) {
-      newProducts = products.map(product => {
-        if (product.id === editProduct.id) {
-          return editProduct;
-        }
-
-        return product;
-      })
-    }
-    else {
-      newProducts = [...products, editProduct]
-    }
-
-    setEditProduct()
-    setProducts(newProducts);
-    setDialog({...dialog, product: false})
-  }
 
   return (
     <Paper className={classes.root}>
-      <pre>
-        {JSON.stringify(editProduct, null, 4)}
-      </pre>
-      <pre>
-        {JSON.stringify(products, null, 4)}
-      </pre>
       <div className={classes.tableWrapper}>
       <Toolbar>
         <Typography variant="h6">
-          Table of Products
+          Table of Events
         </Typography>
       </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
@@ -157,7 +94,7 @@ export default function ProductsTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+            {events?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
               return (
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
@@ -169,7 +106,7 @@ export default function ProductsTable() {
                             variant="outlined"
                             color="primary"
                             className={classes.button}
-                            onClick={(e) => handleEditClick(row)}
+                            // onClick={(e) => handleEditClick(row)}
                           >
                             Edit
                           </Button>
@@ -177,14 +114,14 @@ export default function ProductsTable() {
                             variant="outlined"
                             color="secondary"
                             className={classes.button}
-                            onClick={(e) => handleDeleteClick(row.id)}
+                            // onClick={(e) => handleDeleteClick(row.id)}
                           >
                             Delete
                           </Button>
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
+                          {column.format && Array.isArray(value) ? JSON.stringify(value) : value}
                         </TableCell>
                       )
                   })}
@@ -197,13 +134,13 @@ export default function ProductsTable() {
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={products.length}
+        count={events?.length}
         rowsPerPage={rowsPerPage}
         page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
+        // onChangePage={handleChangePage}
+        // onChangeRowsPerPage={handleChangeRowsPerPage}
       />
-      <Dialog open={dialog.product} onClose={() => setDialog({...dialog, product: false})}>
+      {/* <Dialog open={dialog.category} onClose={() => setDialog({...dialog, product: false})}>
         <DialogTitle>Edit Product</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
@@ -212,7 +149,7 @@ export default function ProductsTable() {
                 id="name"
                 label="Name"
                 fullWidth
-                value={editProduct?.name || ''}
+                value={product?.name || ''}
                 onChange={handleInputChange}
               />
             </Grid>
@@ -221,7 +158,7 @@ export default function ProductsTable() {
                 id="displayName"
                 label="Display Name"
                 fullWidth
-                value={editProduct?.displayName || ''}
+                value={product?.displayName || ''}
                 onChange={handleInputChange}
               />
             </Grid>
@@ -230,17 +167,17 @@ export default function ProductsTable() {
                 id="description"
                 label="Description"
                 fullWidth
-                value={editProduct?.description || ''}
+                value={product?.description || ''}
                 onChange={handleInputChange}
               />
             </Grid>
             <Grid item xs={12}>
               <p>Assigned Events</p>
               {
-                events.map(item => (
+                state?.events?.map(item => (
                   <div>
                     <Checkbox
-                      checked={editProduct?.events?.includes(item.name)}
+                      checked={product?.events?.includes(item.name)}
                       onChange={() => handleAssignedEventChange(item.name)}
                       color="primary"
                       inputProps={{ 'aria-label': 'primary checkbox' }}
@@ -280,14 +217,17 @@ export default function ProductsTable() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialog({...dialog, delete: false})} variant="contained">
+          <Button variant="contained">
             Cancel
           </Button>
-          <Button onClick={() => setDialog({...dialog, delete: false})} color="secondary" variant="contained" autoFocus>
+          <Button color="secondary" variant="contained" autoFocus>
             Yes, delete.
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
+      <pre>
+        {JSON.stringify(events, null, 4)}
+      </pre>
     </Paper>
   );
 }

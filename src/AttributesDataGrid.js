@@ -39,6 +39,41 @@ const columns = [
     minWidth: 170,
   },
   {
+    id: 'dataType',
+    label: 'Data Type',
+    minWidth: 170,
+  },
+  {
+    id: 'indexed',
+    label: 'Indexed',
+    minWidth: 170,
+    format: true
+  },
+  {
+    id: 'sortable',
+    label: 'Sortable',
+    minWidth: 170,
+    format: true
+  },
+  {
+    id: 'required',
+    label: 'Required',
+    minWidth: 170,
+    format: true
+  },
+  {
+    id: 'requestContext',
+    label: 'Request Context',
+    minWidth: 170,
+    format: true
+  },
+  {
+    id: 'constraints',
+    label: 'Constraints',
+    minWidth: 170,
+    format: true
+  },
+  {
     id: 'actions',
     label: '',
     minWidth: 200
@@ -70,7 +105,7 @@ export default function AttributesDataGrid() {
       <div className={classes.tableWrapper}>
       <Toolbar>
         <Typography variant="h6">
-          Table of Events
+          Table of Attributes
         </Typography>
       </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
@@ -115,7 +150,9 @@ export default function AttributesDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === 'number' ? column.format(value) : value}
+                          {column.format && Array.isArray(value) && JSON.stringify(value)}
+                          {column.format && typeof value === "boolean" && JSON.stringify(value)}
+                          {!column.format && value}
                         </TableCell>
                       )
                   })}
@@ -219,6 +256,9 @@ export default function AttributesDataGrid() {
           </Button>
         </DialogActions>
       </Dialog> */}
+      <pre>
+        {JSON.stringify(attributes, null, 4)}
+      </pre>
     </Paper>
   );
 }

@@ -18,14 +18,22 @@ export const reducer = (state, action) => {
         ...payload
       }
 
-    case actionTypes.UPDATE_PRODUCT:
+    case actionTypes.CREATE_OR_UPDATE_PRODUCT:
+      const existingProduct = state.products.find(product => product.id === payload.id);
+      const products = (existingProduct)
+        ? state.products.map(product => (product.id !== payload.id) ? product : payload)
+        : [...state.products, payload]
 
-      const products = state.products.map(item => (item.id !== payload.id) ? item : payload)
-
-      return {
+        return {
         ...state,
         products
       }
+
+      case actionTypes.DELETE_PRODUCT:
+        return {
+          ...state,
+          products: state.products.filter(product => product.id !== payload.id)
+        }
 
     default:
       return state;

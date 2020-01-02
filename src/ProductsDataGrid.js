@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -41,8 +41,7 @@ const columns = [
   {
     id: 'actions',
     label: '',
-    minWidth: 200
-  }
+    minWidth: 200,  }
 ];
 
 const useStyles = makeStyles(theme => ({
@@ -53,6 +52,9 @@ const useStyles = makeStyles(theme => ({
     maxHeight: 800,
     overflow: 'auto',
   },
+  title: {
+    flexGrow: 1,
+  },
   button: {
     margin: theme.spacing(1),
   },
@@ -60,72 +62,100 @@ const useStyles = makeStyles(theme => ({
 
 export default function ProductsDataGrid() {
   const [state, dispatch] = useContext(AppContext)
-  const [page, setPage] =  React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
-
-  const [product, setProduct] = React.useState()
-
+  const [page, setPage] =  useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [product, setProduct] = useState()
+  const [dialog, setDialog] = useState({ delete: false, product: false});
   const classes = useStyles();
-
-  const [dialog, setDialog] = React.useState({ delete: false, product: false});
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = event => {
-    setRowsPerPage(+event.target.value);
+    setRowsPerPage(event.target.value);
     setPage(0);
   };
 
-  const handleAssignedEventChange = eventName => {
-    const events = product.events.includes(eventName)
-      ? product.events.filter(item => item !== eventName)
-      : [...product.events, eventName]
+  const handleInputChange = e => {
+    setProduct({ ...product, [e.target.id]: e.target.value })
+  }
 
-    setProduct({...product, events})
+  const handleAssignedEventChange = event => {
+    const events = product.events.includes(event)
+      ? product.events.filter(item => item !== event)
+      : [...product.events, event]
+
+    setProduct({ ...product, events })
+  }
+
+  const handleAddClick = () => {
+    const nextId = Math.max(...state.products.map(product => product.id)) + 1;
+    const product = {
+      id: nextId,
+      name: '',
+      displayName: '',
+      description: '',
+      catalogId: 'DEFAULT',
+      events: []
+    };
+    setProduct(product)
+    setDialog({ ...dialog, product: true })
   }
 
   const handleEditClick = (rowData) => {
-    setDialog({...dialog, product: true})
+    setDialog({ ...dialog, product: true })
     setProduct(rowData)
-    console.log(rowData)
   }
 
-  const handleDeleteClick = (rowId) => {
-    setDialog({...dialog, delete: true})
-    console.log(rowId)
+  const handleDeleteClick = (rowData) => {
+    setDialog({ ...dialog, delete: true })
+    setProduct(rowData)
   }
 
-  const handleInputChange = e => {
-    setProduct({...product, [e.target.id]: e.target.value})
+  const handleOnSaveCancel = () => {
+    setProduct()
+    setDialog({ ...dialog, product: false })
   }
 
-  const handleSave = () => {
-    if (product.id) {
-      dispatch({
-        type: actionTypes.UPDATE_PRODUCT,
-        payload: product
-      })
-    }
-    else {
-      dispatch({
-        type: actionTypes.CREATE_PRODUCT,
-        payload: product
-      })
-    }
+  const handleOnSaveConfirm = () => {
+    dispatch({
+      type: actionTypes.CREATE_OR_UPDATE_PRODUCT,
+      payload: product
+    })
 
-    setDialog({...dialog, product: false})
+    setDialog({ ...dialog, product: false })
+  }
+
+  const handleOnDeleteCancel = () => {
+    setProduct()
+    setDialog({...dialog, delete: false})
+  }
+
+  const handleOnDeleteConfirm = () => {
+    dispatch({
+      type: actionTypes.DELETE_PRODUCT,
+      payload: product
+    })
+    setProduct()
+    setDialog({...dialog, delete: false})
   }
 
   return (
     <Paper className={classes.root}>
       <div className={classes.tableWrapper}>
-      <Toolbar>
-        <Typography variant="h6">
-          Table of Products
-        </Typography>
-      </Toolbar>
+        <Toolbar>
+          <Typography className={classes.title} variant="h6">
+            Table of Products
+          </Typography>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleAddClick}
+          >
+            Add new record
+          </Button>
+        </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
           <TableHead>
             <TableRow>
@@ -144,11 +174,10 @@ export default function ProductsDataGrid() {
             {state?.products?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
               return (
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                  {columns.map(column => {
+                  {columns.map((column, index) => {
                     const value = row[column.id];
-                    // console.log(value)
                       return (column.id === 'actions') ? (
-                        <TableCell>
+                        <TableCell key={index}>
                           <Button
                             variant="outlined"
                             color="primary"
@@ -161,13 +190,13 @@ export default function ProductsDataGrid() {
                             variant="outlined"
                             color="secondary"
                             className={classes.button}
-                            onClick={(e) => handleDeleteClick(row.id)}
+                            onClick={(e) => handleDeleteClick(row)}
                           >
                             Delete
                           </Button>
                         </TableCell>
                       ) : (
-                        <TableCell key={column.id} align={column.align}>
+                        <TableCell key={index} align={column.align}>
                           {value}
                         </TableCell>
                       )
@@ -222,7 +251,7 @@ export default function ProductsDataGrid() {
               <p>Assigned Events</p>
               {
                 state?.events?.map(item => (
-                  <div>
+                  <div key={item.name}>
                     <Checkbox
                       checked={product?.events?.includes(item.name)}
                       onChange={() => handleAssignedEventChange(item.name)}
@@ -237,11 +266,11 @@ export default function ProductsDataGrid() {
 
           </Grid>
           <DialogActions>
-            <Button onClick={() => setDialog({...dialog, product: false})} variant="contained">
+            <Button onClick={handleOnSaveCancel} variant="contained">
               Cancel
             </Button>
             <Button
-              onClick={handleSave}
+              onClick={handleOnSaveConfirm}
               color="primary"
               variant="contained"
             >
@@ -250,7 +279,6 @@ export default function ProductsDataGrid() {
           </DialogActions>
         </DialogContent>
       </Dialog>
-
       <Dialog
         open={dialog.delete}
         onClose={() => setDialog({...dialog, delete: false})}
@@ -264,10 +292,10 @@ export default function ProductsDataGrid() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDialog({...dialog, delete: false})} variant="contained">
+          <Button onClick={handleOnDeleteCancel} variant="contained">
             Cancel
           </Button>
-          <Button onClick={() => setDialog({...dialog, delete: false})} color="secondary" variant="contained" autoFocus>
+          <Button onClick={handleOnDeleteConfirm} color="secondary" variant="contained" autoFocus>
             Yes, delete.
           </Button>
         </DialogActions>

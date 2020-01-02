@@ -12,7 +12,8 @@ const initialState = {
 const actionTypes = {
   SET_GIT_CREDENTIALS: "SET_GIT_CREDENTIALS",
   GET_CATALOG: "GET_CATALOG",
-  UPDATE_PRODUCT: "UPDATE_PRODUCT"
+  CREATE_OR_UPDATE_PRODUCT: "CREATE_OR_UPDATE_PRODUCT",
+  DELETE_PRODUCT: "DELETE_PRODUCT"
 };
 
 const AppContext = createContext(initialState);

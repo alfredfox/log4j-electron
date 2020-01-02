@@ -29,16 +29,7 @@ function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
   return (
-    <Typography
-    component="div"
-    role="tabpanel"
-    hidden={value !== index}
-    id={`simple-tabpanel-${index}`}
-    aria-labelledby={`simple-tab-${index}`}
-    {...other}
-    >
-      {value === index && <Box p={3}>{children}</Box>}
-    </Typography>
+      (value === index) && <Box p={1}>{children}</Box>
   );
 }
 
@@ -70,8 +61,8 @@ const read = (callback) => {
 const useStyles = makeStyles(theme => ({
   fabRoot: {
     position: 'absolute',
-    top: '4.5rem',
-    right: '2rem',
+    top: '0.25rem',
+    right: '0.25rem',
     zIndex: 999
   }
 }));
@@ -121,7 +112,7 @@ export default function App() {
       })
     })
     .catch(error => console.log(error))
-  },[state.git]);
+  }, [state.git]);
 
   // const handleCommitClick = e => {
   //   axios.put(`https://api.github.com/repos/${state.git.username}/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json`, {
@@ -147,11 +138,12 @@ export default function App() {
     <AppContext.Provider value={appContext}>
       <Fab
         className={classes.fabRoot}
-        color="primary"
-        variant="extended"
+        color="secondary"
+        size="medium"
+        variant="outlined"
         onClick={() => {}}
       >
-        Save Changes
+        Save All Changes
       </Fab>
       <Grid container>
         <Grid item xs={12}>

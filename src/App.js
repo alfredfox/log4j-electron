@@ -41,7 +41,7 @@ TabPanel.propTypes = {
 
 const read = (callback) => {
   try {
-    const content = fs.readFileSync('application.properties', 'UTF-8')
+    const content = fs.readFileSync('application.properties.dev', 'UTF-8')
 
     //  parse application properties from string to json
     const json = content.split('\n').reduce((acc, curr) => {
@@ -114,21 +114,24 @@ export default function App() {
     .catch(error => console.log(error))
   }, [state.git]);
 
-  // const handleCommitClick = e => {
-  //   axios.put(`https://api.github.com/repos/${state.git.username}/logging-log4j-audit-sample/contents/audit-service-api/src/main/resources/catalog.json`, {
-  //     "message": "updating...",
-  //     "content": btoa(JSON.stringify(catalog.content)),
-  //     "sha": catalog.sha
-  //   },{
-  //     headers: {
-  //       'Authorization': `Basic ${state.git.accessToken}`
-  //     },
-  //   })
-  //   .then(response => {
-  //     console.log('SUCCESS', response)
-  //   })
-  //   .catch(error => console.log(error))
-  // }
+  const handleSaveAllClick = e => {
+    const { products, categories, events, attributes } = state;
+
+    axios.put(`https://api.github.com/repos/${state.git.username}/${state.git.repository}/contents/${state.git.catalogPath}`, {
+      "message": "updating...",
+      "content": btoa(JSON.stringify({ products, categories, events, attributes })),
+      "sha": state.sha
+    },{
+      headers: {
+        'Authorization': `Basic ${state.git.accessToken}`
+      },
+    })
+    .then(response => {
+      console.log('SUCCESS', response)
+      alert('success')
+    })
+    .catch(error => console.log(error))
+  }
 
   const handleTabChange = (event, index) => {
     setTabIndex(index);
@@ -141,7 +144,7 @@ export default function App() {
         color="secondary"
         size="medium"
         variant="outlined"
-        onClick={() => {}}
+        onClick={handleSaveAllClick}
       >
         Save All Changes
       </Fab>

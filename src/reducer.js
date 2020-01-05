@@ -58,6 +58,11 @@ export const reducer = (state, action) => {
         events: state.events.filter(evt => evt.id !== payload.id)
       }
 
+    case actionTypes.DELETE_ATTRIBUTE:
+      return {
+        ...state,
+        attributes: state.attributes.filter(attr => attr.id !== payload.id)
+      }
     default:
       return state;
   }

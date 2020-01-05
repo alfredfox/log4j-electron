@@ -56,7 +56,7 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
   },
   tableWrapper: {
-    maxHeight: 800,
+    maxHeight: 850,
     overflow: 'auto',
   },
   title: {

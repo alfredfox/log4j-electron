@@ -55,7 +55,7 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
   },
   tableWrapper: {
-    maxHeight: 800,
+    maxHeight: 850,
     overflow: 'auto',
   },
   title: {
@@ -204,7 +204,11 @@ export default function ProductsDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={index} align={column.align}>
-                          {(column.format && Array.isArray(value)) ? value.map(val => <div key={val}>&bull; {val}</div>) : value}
+                          {
+                            (column.format && Array.isArray(value))
+                              ? value.map(val => <div key={val}>&bull; {val}</div>)
+                              : value
+                          }
                         </TableCell>
                       )
                   })}

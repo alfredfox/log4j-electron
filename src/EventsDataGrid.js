@@ -99,7 +99,7 @@ export default function EventsDataGrid() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
                     const value = row[column.id];
-                    // console.log(value)
+                    console.log(value)
                       return (column.id === 'actions') ? (
                         <TableCell>
                           <Button
@@ -121,7 +121,7 @@ export default function EventsDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && Array.isArray(value) ? JSON.stringify(value) : value}
+                          {(column.format && Array.isArray(value)) ? value.map(val => <div key={val.name}>&bull; {val.name} {val.required ? '(required)' : ''}</div>) : value}
                         </TableCell>
                       )
                   })}

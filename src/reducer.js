@@ -52,6 +52,12 @@ export const reducer = (state, action) => {
         categories: state.categories.filter(cat => cat.id !== payload.id)
       }
 
+    case actionTypes.DELETE_EVENT:
+      return {
+        ...state,
+        events: state.events.filter(evt => evt.id !== payload.id)
+      }
+
     default:
       return state;
   }

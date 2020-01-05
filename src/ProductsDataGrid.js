@@ -204,7 +204,11 @@ export default function ProductsDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={index} align={column.align}>
-                          {(column.format && Array.isArray(value)) ? value.map(val => <div key={val}>&bull; {val}</div>) : value}
+                          {
+                            (column.format && Array.isArray(value))
+                              ? value.map(val => <div key={val}>&bull; {val}</div>)
+                              : value
+                          }
                         </TableCell>
                       )
                   })}

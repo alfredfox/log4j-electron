@@ -29,11 +29,28 @@ export const reducer = (state, action) => {
         products
       }
 
-      case actionTypes.DELETE_PRODUCT:
+    case actionTypes.DELETE_PRODUCT:
+      return {
+        ...state,
+        products: state.products.filter(product => product.id !== payload.id)
+      }
+
+    case actionTypes.CREATE_OR_UPDATE_CATEGORY:
+      const existingCategory = state.categories.find(cat => cat.id === payload.id);
+      const categories = (existingCategory)
+        ? state.categories.map(cat => (cat.id !== payload.id) ? cat : payload)
+        : [...state.categories, payload]
+
         return {
-          ...state,
-          products: state.products.filter(product => product.id !== payload.id)
-        }
+        ...state,
+        categories
+      }
+
+    case actionTypes.DELETE_CATEGORY:
+      return {
+        ...state,
+        categories: state.categories.filter(cat => cat.id !== payload.id)
+      }
 
     default:
       return state;

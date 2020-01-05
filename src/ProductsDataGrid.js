@@ -67,7 +67,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function ProductsDataGrid() {
-  const [state, dispatch] = useContext(AppContext)
+  const [{ products, events }, dispatch] = useContext(AppContext)
   const [page, setPage] =  useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [product, setProduct] = useState()
@@ -96,7 +96,7 @@ export default function ProductsDataGrid() {
   }
 
   const handleAddClick = () => {
-    const nextId = Math.max(...state.products.map(product => product.id)) + 1;
+    const nextId = Math.max(...products.map(product => product.id)) + 1;
     const product = {
       id: nextId,
       name: '',
@@ -177,7 +177,7 @@ export default function ProductsDataGrid() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {state?.products?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
+            {products?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(row => {
               return (
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map((column, index) => {
@@ -217,7 +217,7 @@ export default function ProductsDataGrid() {
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={state?.products?.length}
+        count={products?.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onChangePage={handleChangePage}
@@ -257,7 +257,7 @@ export default function ProductsDataGrid() {
             <Grid item xs={12}>
               <p>Assigned Events</p>
               {
-                state?.events?.map(item => (
+                events?.map(item => (
                   <div key={item.name}>
                     <Checkbox
                       checked={product?.events?.includes(item.name)}
@@ -299,19 +299,22 @@ export default function ProductsDataGrid() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleOnDeleteCancel} variant="contained">
+          <Button
+            onClick={handleOnDeleteCancel}
+            variant="contained"
+          >
             Cancel
           </Button>
-          <Button onClick={handleOnDeleteConfirm} color="secondary" variant="contained" autoFocus>
+          <Button
+            onClick={handleOnDeleteConfirm}
+            color="secondary"
+            variant="contained"
+            autoFocus
+          >
             Yes, delete.
           </Button>
         </DialogActions>
       </Dialog>
-      <pre>
-        {
-          JSON.stringify(state.products, null, 4)
-        }
-      </pre>
     </Paper>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
@@ -59,6 +59,9 @@ const useStyles = makeStyles(theme => ({
     maxHeight: 800,
     overflow: 'auto',
   },
+  title: {
+    flexGrow: 1,
+  },
   button: {
     margin: theme.spacing(1),
   },
@@ -66,19 +69,101 @@ const useStyles = makeStyles(theme => ({
 
 export default function CategoriesDataGrid() {
   const [{ categories, events }, dispatch] = useContext(AppContext)
-  const classes = useStyles();
-
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [category, setCategory] = useState()
+  const [dialog, setDialog] = useState({ delete: false, category: false});
+
+  const classes = useStyles();
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(event.target.value);
+    setPage(0);
+  };
+
+  const handleInputChange = e => {
+    setCategory({ ...category, [e.target.id]: e.target.value })
+  }
+
+  const handleAssignedEventChange = event => {
+    const events = category.events.includes(event)
+      ? category.events.filter(item => item !== event)
+      : [...category.events, event]
+
+    setCategory({ ...category, events })
+  }
+
+  const handleAddClick = () => {
+    const nextId = Math.max(...categories.map(cat => cat.id)) + 1;
+    const product = {
+      id: nextId,
+      name: '',
+      displayName: '',
+      description: '',
+      catalogId: 'DEFAULT',
+      events: []
+    };
+    setCategory(product)
+    setDialog({ ...dialog, category: true })
+  }
+
+  const handleEditClick = (rowData) => {
+    setDialog({ ...dialog, category: true })
+    setCategory(rowData)
+  }
+
+  const handleDeleteClick = (rowData) => {
+    setDialog({ ...dialog, delete: true })
+    setCategory(rowData)
+  }
+
+  const handleOnSaveCancel = () => {
+    setCategory()
+    setDialog({ ...dialog, category: false })
+  }
+
+  const handleOnSaveConfirm = () => {
+    dispatch({
+      type: actionTypes.CREATE_OR_UPDATE_CATEGORY,
+      payload: category
+    })
+
+    setDialog({ ...dialog, category: false })
+  }
+
+  const handleOnDeleteCancel = () => {
+    setCategory()
+    setDialog({...dialog, delete: false})
+  }
+
+  const handleOnDeleteConfirm = () => {
+    dispatch({
+      type: actionTypes.DELETE_CATEGORY,
+      payload: category
+    })
+    setCategory()
+    setDialog({...dialog, delete: false})
+  }
 
   return (
     <Paper className={classes.root}>
       <div className={classes.tableWrapper}>
-      <Toolbar>
-        <Typography variant="h6">
-          Table of Categories
-        </Typography>
-      </Toolbar>
+        <Toolbar>
+          <Typography className={classes.title} variant="h6">
+            Table of Categories
+          </Typography>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleAddClick}
+          >
+            Add new record
+          </Button>
+        </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
           <TableHead>
             <TableRow>
@@ -99,14 +184,13 @@ export default function CategoriesDataGrid() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
                     const value = row[column.id];
-                    // console.log(value)
                       return (column.id === 'actions') ? (
                         <TableCell>
                           <Button
                             variant="outlined"
                             color="primary"
                             className={classes.button}
-                            // onClick={(e) => handleEditClick(row)}
+                            onClick={(e) => handleEditClick(row)}
                           >
                             Edit
                           </Button>
@@ -114,7 +198,7 @@ export default function CategoriesDataGrid() {
                             variant="outlined"
                             color="secondary"
                             className={classes.button}
-                            // onClick={(e) => handleDeleteClick(row.id)}
+                            onClick={(e) => handleDeleteClick(row)}
                           >
                             Delete
                           </Button>
@@ -137,11 +221,11 @@ export default function CategoriesDataGrid() {
         count={categories?.length}
         rowsPerPage={rowsPerPage}
         page={page}
-        // onChangePage={handleChangePage}
-        // onChangeRowsPerPage={handleChangeRowsPerPage}
+        onChangePage={handleChangePage}
+        onChangeRowsPerPage={handleChangeRowsPerPage}
       />
-      {/* <Dialog open={dialog.category} onClose={() => setDialog({...dialog, product: false})}>
-        <DialogTitle>Edit Product</DialogTitle>
+      <Dialog open={dialog.category} onClose={() => setDialog({...dialog, category: false})}>
+        <DialogTitle>Edit Category</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -149,7 +233,7 @@ export default function CategoriesDataGrid() {
                 id="name"
                 label="Name"
                 fullWidth
-                value={product?.name || ''}
+                value={category?.name || ''}
                 onChange={handleInputChange}
               />
             </Grid>
@@ -158,7 +242,7 @@ export default function CategoriesDataGrid() {
                 id="displayName"
                 label="Display Name"
                 fullWidth
-                value={product?.displayName || ''}
+                value={category?.displayName || ''}
                 onChange={handleInputChange}
               />
             </Grid>
@@ -167,34 +251,36 @@ export default function CategoriesDataGrid() {
                 id="description"
                 label="Description"
                 fullWidth
-                value={product?.description || ''}
+                value={category?.description || ''}
                 onChange={handleInputChange}
               />
             </Grid>
             <Grid item xs={12}>
               <p>Assigned Events</p>
               {
-                state?.events?.map(item => (
+                events?.map(event => (
                   <div>
                     <Checkbox
-                      checked={product?.events?.includes(item.name)}
-                      onChange={() => handleAssignedEventChange(item.name)}
+                      checked={category?.events?.includes(event.name)}
+                      onChange={() => handleAssignedEventChange(event.name)}
                       color="primary"
                       inputProps={{ 'aria-label': 'primary checkbox' }}
                     />
-                    {item.displayName}
+                    {event.displayName}
                   </div>
                 ))
               }
             </Grid>
-
           </Grid>
           <DialogActions>
-            <Button onClick={() => setDialog({...dialog, product: false})} variant="contained">
+            <Button
+              onClick={handleOnSaveCancel}
+              variant="contained"
+            >
               Cancel
             </Button>
             <Button
-              onClick={handleSave}
+              onClick={handleOnSaveConfirm}
               color="primary"
               variant="contained"
             >
@@ -203,31 +289,35 @@ export default function CategoriesDataGrid() {
           </DialogActions>
         </DialogContent>
       </Dialog>
-
       <Dialog
         open={dialog.delete}
         onClose={() => setDialog({...dialog, delete: false})}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle>Delete Product?</DialogTitle>
+        <DialogTitle>Delete category?</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this product?
+            Are you sure you want to delete this category?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained">
+          <Button
+            onClick={handleOnDeleteCancel}
+            variant="contained"
+          >
             Cancel
           </Button>
-          <Button color="secondary" variant="contained" autoFocus>
+          <Button
+            onClick={handleOnDeleteConfirm}
+            color="secondary"
+            variant="contained"
+            autoFocus
+          >
             Yes, delete.
           </Button>
         </DialogActions>
-      </Dialog> */}
-      <pre>
-        {JSON.stringify(categories, null, 4)}
-      </pre>
+      </Dialog>
     </Paper>
   );
 }

@@ -39,6 +39,12 @@ const columns = [
     minWidth: 170,
   },
   {
+    id: 'events',
+    label: 'Events',
+    format: true,
+    minWidth: 170,
+  },
+  {
     id: 'actions',
     label: '',
     minWidth: 200
@@ -115,7 +121,7 @@ export default function CategoriesDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {value}
+                          {(column.format && Array.isArray(value)) ? value.map(val => <div key={val}>&bull; {val}</div>) : value}
                         </TableCell>
                       )
                   })}

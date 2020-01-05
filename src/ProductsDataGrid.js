@@ -39,6 +39,12 @@ const columns = [
     minWidth: 170,
   },
   {
+    id: 'events',
+    label: 'Events',
+    format: true,
+    minWidth: 170,
+  },
+  {
     id: 'actions',
     label: '',
     minWidth: 200,  }
@@ -176,6 +182,7 @@ export default function ProductsDataGrid() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map((column, index) => {
                     const value = row[column.id];
+                    console.log({value})
                       return (column.id === 'actions') ? (
                         <TableCell key={index}>
                           <Button
@@ -197,7 +204,7 @@ export default function ProductsDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={index} align={column.align}>
-                          {value}
+                          {(column.format && Array.isArray(value)) ? value.map(val => <div key={val}>&bull; {val}</div>) : value}
                         </TableCell>
                       )
                   })}
@@ -300,6 +307,11 @@ export default function ProductsDataGrid() {
           </Button>
         </DialogActions>
       </Dialog>
+      <pre>
+        {
+          JSON.stringify(state.products, null, 4)
+        }
+      </pre>
     </Paper>
   );
 }

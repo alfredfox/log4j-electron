@@ -299,19 +299,22 @@ export default function ProductsDataGrid() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleOnDeleteCancel} variant="contained">
+          <Button
+            onClick={handleOnDeleteCancel}
+            variant="contained"
+          >
             Cancel
           </Button>
-          <Button onClick={handleOnDeleteConfirm} color="secondary" variant="contained" autoFocus>
+          <Button
+            onClick={handleOnDeleteConfirm}
+            color="secondary"
+            variant="contained"
+            autoFocus
+          >
             Yes, delete.
           </Button>
         </DialogActions>
       </Dialog>
-      <pre>
-        {
-          JSON.stringify(products, null, 4)
-        }
-      </pre>
     </Paper>
   );
 }

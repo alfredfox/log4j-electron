@@ -59,6 +59,9 @@ const useStyles = makeStyles(theme => ({
     maxHeight: 800,
     overflow: 'auto',
   },
+  title: {
+    flexGrow: 1,
+  },
   button: {
     margin: theme.spacing(1),
   },
@@ -94,8 +97,27 @@ export default function CategoriesDataGrid() {
     setCategory({ ...category, events })
   }
 
+  const handleAddClick = () => {
+    const nextId = Math.max(...categories.map(cat => cat.id)) + 1;
+    const product = {
+      id: nextId,
+      name: '',
+      displayName: '',
+      description: '',
+      catalogId: 'DEFAULT',
+      events: []
+    };
+    setCategory(product)
+    setDialog({ ...dialog, category: true })
+  }
+
   const handleEditClick = (rowData) => {
     setDialog({ ...dialog, category: true })
+    setCategory(rowData)
+  }
+
+  const handleDeleteClick = (rowData) => {
+    setDialog({ ...dialog, delete: true })
     setCategory(rowData)
   }
 
@@ -113,15 +135,35 @@ export default function CategoriesDataGrid() {
     setDialog({ ...dialog, category: false })
   }
 
+  const handleOnDeleteCancel = () => {
+    setCategory()
+    setDialog({...dialog, delete: false})
+  }
+
+  const handleOnDeleteConfirm = () => {
+    dispatch({
+      type: actionTypes.DELETE_CATEGORY,
+      payload: category
+    })
+    setCategory()
+    setDialog({...dialog, delete: false})
+  }
 
   return (
     <Paper className={classes.root}>
       <div className={classes.tableWrapper}>
-      <Toolbar>
-        <Typography variant="h6">
-          Table of Categories
-        </Typography>
-      </Toolbar>
+        <Toolbar>
+          <Typography className={classes.title} variant="h6">
+            Table of Categories
+          </Typography>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={handleAddClick}
+          >
+            Add new record
+          </Button>
+        </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
           <TableHead>
             <TableRow>
@@ -142,7 +184,6 @@ export default function CategoriesDataGrid() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
                     const value = row[column.id];
-                    // console.log(value)
                       return (column.id === 'actions') ? (
                         <TableCell>
                           <Button
@@ -157,7 +198,7 @@ export default function CategoriesDataGrid() {
                             variant="outlined"
                             color="secondary"
                             className={classes.button}
-                            // onClick={(e) => handleDeleteClick(row.id)}
+                            onClick={(e) => handleDeleteClick(row)}
                           >
                             Delete
                           </Button>
@@ -248,7 +289,6 @@ export default function CategoriesDataGrid() {
           </DialogActions>
         </DialogContent>
       </Dialog>
-      {/*
       <Dialog
         open={dialog.delete}
         onClose={() => setDialog({...dialog, delete: false})}
@@ -262,18 +302,22 @@ export default function CategoriesDataGrid() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained">
+          <Button
+            onClick={handleOnDeleteCancel}
+            variant="contained"
+          >
             Cancel
           </Button>
-          <Button color="secondary" variant="contained" autoFocus>
+          <Button
+            onClick={handleOnDeleteConfirm}
+            color="secondary"
+            variant="contained"
+            autoFocus
+          >
             Yes, delete.
           </Button>
         </DialogActions>
-      </Dialog> */}
-      <pre>
-        {JSON.stringify(categories, null, 4)}
-        {JSON.stringify(events, null, 4)}
-      </pre>
+      </Dialog>
     </Paper>
   );
 }

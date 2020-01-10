@@ -134,6 +134,21 @@ export default function EventsDataGrid() {
     setEvent({...event, attributes});
   }
 
+  const handleOnSaveCancel = () => {
+    setEvent()
+    setDialog({ ...dialog, edit: false })
+  }
+
+  const handleOnSaveConfirm = () => {
+    console.table({event})
+    dispatch({
+      type: actionTypes.CREATE_OR_UPDATE_EVENT,
+      payload: event
+    })
+
+    setDialog({ ...dialog, edit: false })
+  }
+
   const handleOnDeleteCancel = () => {
     setEvent();
     setDialog({...dialog, delete: false});
@@ -181,7 +196,6 @@ export default function EventsDataGrid() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
                     const value = row[column.id];
-                    console.log(value)
                       return (column.id === 'actions') ? (
                         <TableCell>
                           <Button
@@ -323,7 +337,6 @@ export default function EventsDataGrid() {
                 label="Available Attributes"
                 fullWidth
                 size="small"
-                // style={{padding: '14.5px 10px'}}
                 variant="outlined"
                 value={attribute}
                 onChange={handleSelectChange}
@@ -342,15 +355,13 @@ export default function EventsDataGrid() {
               </Button>
             </Grid>
           </Grid>
-
           <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
-
           <DialogActions>
-            <Button onClick={() => setDialog({...dialog, edit: false})} variant="contained">
+            <Button onClick={handleOnSaveCancel} variant="contained">
               Cancel
             </Button>
             <Button
-              // onClick={handleSave}
+              onClick={handleOnSaveConfirm}
               color="primary"
               variant="contained"
             >
@@ -389,8 +400,7 @@ export default function EventsDataGrid() {
         </DialogActions>
       </Dialog>
       <pre>
-        {JSON.stringify(events, null, 4)}
-        {JSON.stringify(attributes, null, 4)}
+        {JSON.stringify(event, null, 4)}
       </pre>
     </Paper>
   );

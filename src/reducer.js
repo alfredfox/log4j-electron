@@ -36,10 +36,10 @@ export const reducer = (state, action) => {
       }
 
     case actionTypes.CREATE_OR_UPDATE_CATEGORY:
-      const existingCategory = state.categories.find(cat => cat.id === payload.id);
+      const existingCategory = state.categories.find(item => item.id === payload.id);
       const categories = (existingCategory)
-        ? state.categories.map(cat => (cat.id !== payload.id) ? cat : payload)
-        : [...state.categories, payload]
+        ? state.categories.map(item => (item.id !== payload.id) ? item : payload)
+        : [...state.categories, payload];
 
         return {
         ...state,
@@ -51,6 +51,19 @@ export const reducer = (state, action) => {
         ...state,
         categories: state.categories.filter(cat => cat.id !== payload.id)
       }
+
+    case actionTypes.CREATE_OR_UPDATE_EVENT: {
+
+      const existingEvent = state.events.find(item => item.id === payload.id);
+      const events = (existingEvent)
+        ? state.events.map(item => (item.id !== payload.id) ? item : payload)
+        : [...state.events, payload]
+
+      return {
+        ...state,
+        events
+      }
+    }
 
     case actionTypes.DELETE_EVENT:
       return {

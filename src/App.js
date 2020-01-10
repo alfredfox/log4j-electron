@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useMemo, useReducer, useState} from 'react';
+import React, {useEffect, useMemo, useReducer} from 'react';
 import PropTypes from 'prop-types';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -8,7 +8,6 @@ import Grid from '@material-ui/core/Grid';
 import Fab from '@material-ui/core/Fab';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Typography from '@material-ui/core/Typography';
 import axios from 'axios'
 
 import AttributesDataGrid from './AttributesDataGrid'
@@ -26,7 +25,7 @@ import { reducer } from './reducer';
 const fs = window.require('fs');
 
 function TabPanel(props) {
-  const { children, value, index, ...other } = props;
+  const { children, value, index } = props;
 
   return (
       (value === index) && <Box p={1}>{children}</Box>
@@ -71,7 +70,7 @@ export default function App() {
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const [tabIndex, setTabIndex] = React.useState(0);
+  const [tabIndex, setTabIndex] = React.useState(2);
 
   const appContext = useMemo(() => ([state, dispatch]), [state, dispatch]);
 

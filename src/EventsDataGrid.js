@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -8,8 +8,11 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogActions from '@material-ui/core/DialogActions';
 
+import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
+import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
+import Select from '@material-ui/core/Select';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -63,12 +66,18 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const dialogStates = {
+  delete: false,
+  edit: false
+}
+
 export default function EventsDataGrid() {
   const [{ events, attributes }, dispatch] = useContext(AppContext)
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [event, setEvent] = useState()
-  const [dialog, setDialog] = useState({ delete: false, product: false});
+  const [event, setEvent] = useState();
+  const [attribute, setAttribute] = useState('');
+  const [dialog, setDialog] = useState(dialogStates);
   const classes = useStyles();
 
   const handleChangePage = (event, newPage) => {
@@ -85,9 +94,49 @@ export default function EventsDataGrid() {
     setEvent(rowData)
   }
 
+  const handleEditClick = (rowData) => {
+    setDialog({ ...dialog, edit: true })
+    setEvent(rowData)
+  }
+
+  const handleInputChange = e => {
+    setEvent({ ...event, [e.target.id]: e.target.value })
+  }
+
+  const handleSelectChange = e => {
+    setAttribute(e.target.value)
+  }
+
+  const handleAddAttributeClick = () => {
+    const newAttribute = {
+      name: attribute,
+      required: false,
+    }
+
+    setEvent({...event, attributes: [...event.attributes, newAttribute]});
+  }
+
+  const handleRemoveAttributeClick = name => {
+    const attributes = event.attributes.filter(item => (item.name !== name))
+    setEvent({ ...event, attributes });
+  }
+
+  const handleItemRequiredClick = (name, required) => {
+    const attributes = event.attributes.map(item => {
+      if (item.name === name) {
+        return {
+          ...item,
+          required
+        }
+      }
+      return item;
+    })
+    setEvent({...event, attributes});
+  }
+
   const handleOnDeleteCancel = () => {
-    setEvent()
-    setDialog({...dialog, delete: false})
+    setEvent();
+    setDialog({...dialog, delete: false});
   }
 
   const handleOnDeleteConfirm = () => {
@@ -95,9 +144,14 @@ export default function EventsDataGrid() {
       type: actionTypes.DELETE_EVENT,
       payload: event
     })
-    setEvent()
-    setDialog({...dialog, delete: false})
+    setEvent();
+    setDialog({...dialog, delete: false});
   }
+
+  const availableAttributes = React.useMemo(() => {
+    const assignedAttributesList = event?.attributes.map(item => item.name)
+    return attributes.filter(item => assignedAttributesList?.includes(item.name) === false)
+  }, [event, attributes])
 
   return (
     <Paper className={classes.root}>
@@ -134,7 +188,7 @@ export default function EventsDataGrid() {
                             variant="outlined"
                             color="primary"
                             className={classes.button}
-                            // onClick={(e) => handleEditClick(row)}
+                            onClick={(e) => handleEditClick(row)}
                           >
                             Edit
                           </Button>
@@ -172,61 +226,131 @@ export default function EventsDataGrid() {
         onChangePage={handleChangePage}
         onChangeRowsPerPage={handleChangeRowsPerPage}
       />
-      {/* <Dialog open={dialog.category} onClose={() => setDialog({...dialog, product: false})}>
-        <DialogTitle>Edit Product</DialogTitle>
+      <Dialog open={dialog.edit} onClose={() => setDialog({...dialog, edit: false})}>
+        <DialogTitle>Edit Event</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
+                fullWidth
                 id="name"
                 label="Name"
-                fullWidth
-                value={product?.name || ''}
+                size="small"
+                value={event?.name || ''}
+                variant="outlined"
                 onChange={handleInputChange}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
+                fullWidth
                 id="displayName"
                 label="Display Name"
-                fullWidth
-                value={product?.displayName || ''}
+                size="small"
+                value={event?.displayName || ''}
+                variant="outlined"
                 onChange={handleInputChange}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
+                fullWidth
                 id="description"
                 label="Description"
-                fullWidth
-                value={product?.description || ''}
+                size="small"
+                value={event?.description || ''}
+                variant="outlined"
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12}>
-              <p>Assigned Events</p>
+          </Grid>
+
+          <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
+
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Typography variant="h6">
+                  Assigned Attributes
+                </Typography>
+              </Grid>
               {
-                state?.events?.map(item => (
-                  <div>
-                    <Checkbox
-                      checked={product?.events?.includes(item.name)}
-                      onChange={() => handleAssignedEventChange(item.name)}
-                      color="primary"
-                      inputProps={{ 'aria-label': 'primary checkbox' }}
-                    />
-                    {item.displayName}
-                  </div>
+                event?.attributes?.map(item => (
+                  <>
+                    <Grid item xs={6}>{item.name}</Grid>
+                    <Grid item xs={2}>
+                      <Checkbox
+                        checked={item.required}
+                        onChange={() => handleItemRequiredClick(item.name, true)}
+                        color="primary"
+                        inputProps={{ 'aria-label': 'primary checkbox' }}
+                      />
+                      Yes
+                    </Grid>
+                    <Grid item xs={2}>
+                      <Checkbox
+                        checked={!item.required}
+                        onChange={() => handleItemRequiredClick(item.name, false)}
+                        color="primary"
+                        inputProps={{ 'aria-label': 'primary checkbox' }}
+                      />
+                      No
+                    </Grid>
+                    <Grid item xs={2}>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleRemoveAttributeClick(item.name)}
+                      >
+                        -
+                      </Button>
+                    </Grid>
+                  </>
                 ))
               }
-            </Grid>
-
           </Grid>
+
+          <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Typography variant="h6">
+                Available Attributes
+              </Typography>
+            </Grid>
+            <Grid item xs={10}>
+              <Select
+                label="Available Attributes"
+                fullWidth
+                size="small"
+                // style={{padding: '14.5px 10px'}}
+                variant="outlined"
+                value={attribute}
+                onChange={handleSelectChange}
+              >
+                {availableAttributes.map(item => (<MenuItem value={item.name}>{item.name}</MenuItem>))}
+              </Select>
+            </Grid>
+            <Grid item xs={2}>
+              <Button
+                variant="outlined"
+                color="primary"
+                size="small"
+                onClick={handleAddAttributeClick}
+              >
+                +
+              </Button>
+            </Grid>
+          </Grid>
+
+          <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
+
           <DialogActions>
-            <Button onClick={() => setDialog({...dialog, product: false})} variant="contained">
+            <Button onClick={() => setDialog({...dialog, edit: false})} variant="contained">
               Cancel
             </Button>
             <Button
-              onClick={handleSave}
+              // onClick={handleSave}
               color="primary"
               variant="contained"
             >
@@ -235,7 +359,6 @@ export default function EventsDataGrid() {
           </DialogActions>
         </DialogContent>
       </Dialog>
- */}
       <Dialog
         open={dialog.delete}
         onClose={() => setDialog({...dialog, delete: false})}
@@ -267,6 +390,7 @@ export default function EventsDataGrid() {
       </Dialog>
       <pre>
         {JSON.stringify(events, null, 4)}
+        {JSON.stringify(attributes, null, 4)}
       </pre>
     </Paper>
   );

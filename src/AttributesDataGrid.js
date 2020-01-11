@@ -1,15 +1,12 @@
-import React, { useEffect, useContext } from 'react';
-import axios from 'axios';
+import React, { useContext, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
-import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogActions from '@material-ui/core/DialogActions';
 
-import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -17,7 +14,6 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
-import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { AppContext, actionTypes } from './AppContext';
@@ -85,7 +81,7 @@ const useStyles = makeStyles(theme => ({
     width: '100%',
   },
   tableWrapper: {
-    maxHeight: 800,
+    maxHeight: 850,
     overflow: 'auto',
   },
   button: {
@@ -95,10 +91,39 @@ const useStyles = makeStyles(theme => ({
 
 export default function AttributesDataGrid() {
   const [{ attributes }, dispatch] = useContext(AppContext)
-  const classes = useStyles();
-
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [attribute, setAttribute] = useState()
+  const [dialog, setDialog] = useState({ delete: false, product: false});
+  const classes = useStyles();
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = event => {
+    setRowsPerPage(event.target.value);
+    setPage(0);
+  };
+
+  const handleDeleteClick = (rowData) => {
+    setDialog({ ...dialog, delete: true })
+    setAttribute(rowData)
+  }
+
+  const handleOnDeleteCancel = () => {
+    setAttribute()
+    setDialog({...dialog, delete: false})
+  }
+
+  const handleOnDeleteConfirm = () => {
+    dispatch({
+      type: actionTypes.DELETE_ATTRIBUTE,
+      payload: attribute
+    })
+    setAttribute()
+    setDialog({...dialog, delete: false})
+  }
 
   return (
     <Paper className={classes.root}>
@@ -128,7 +153,6 @@ export default function AttributesDataGrid() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map(column => {
                     const value = row[column.id];
-                    // console.log(value)
                       return (column.id === 'actions') ? (
                         <TableCell>
                           <Button
@@ -143,16 +167,24 @@ export default function AttributesDataGrid() {
                             variant="outlined"
                             color="secondary"
                             className={classes.button}
-                            // onClick={(e) => handleDeleteClick(row.id)}
+                            onClick={(e) => handleDeleteClick(row)}
                           >
                             Delete
                           </Button>
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format && Array.isArray(value) && JSON.stringify(value)}
-                          {column.format && typeof value === "boolean" && JSON.stringify(value)}
-                          {!column.format && value}
+                          {
+                            (column.format && Array.isArray(value)) && (value.map(val => (
+                              <div >&bull; {val.constraintType.name}("{val.value}")</div>
+                            )))
+                          }
+                          {
+                            column.format && typeof value === "boolean" && JSON.stringify(value)
+                          }
+                          {
+                            !column.format && value
+                          }
                         </TableCell>
                       )
                   })}
@@ -168,8 +200,8 @@ export default function AttributesDataGrid() {
         count={attributes?.length}
         rowsPerPage={rowsPerPage}
         page={page}
-        // onChangePage={handleChangePage}
-        // onChangeRowsPerPage={handleChangeRowsPerPage}
+        onChangePage={handleChangePage}
+        onChangeRowsPerPage={handleChangeRowsPerPage}
       />
       {/* <Dialog open={dialog.category} onClose={() => setDialog({...dialog, product: false})}>
         <DialogTitle>Edit Product</DialogTitle>
@@ -234,31 +266,36 @@ export default function AttributesDataGrid() {
           </DialogActions>
         </DialogContent>
       </Dialog>
-
+*/}
       <Dialog
         open={dialog.delete}
         onClose={() => setDialog({...dialog, delete: false})}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle>Delete Product?</DialogTitle>
+        <DialogTitle>Delete Event?</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this product?
+            Are you sure you want to delete this event?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained">
+          <Button
+            onClick={handleOnDeleteCancel}
+            variant="contained"
+          >
             Cancel
           </Button>
-          <Button color="secondary" variant="contained" autoFocus>
+          <Button
+            onClick={handleOnDeleteConfirm}
+            color="secondary"
+            variant="contained"
+            autoFocus
+          >
             Yes, delete.
           </Button>
         </DialogActions>
-      </Dialog> */}
-      <pre>
-        {JSON.stringify(attributes, null, 4)}
-      </pre>
+      </Dialog>
     </Paper>
   );
 }

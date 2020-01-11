@@ -29,12 +29,53 @@ export const reducer = (state, action) => {
         products
       }
 
-      case actionTypes.DELETE_PRODUCT:
-        return {
-          ...state,
-          products: state.products.filter(product => product.id !== payload.id)
-        }
+    case actionTypes.DELETE_PRODUCT:
+      return {
+        ...state,
+        products: state.products.filter(product => product.id !== payload.id)
+      }
 
+    case actionTypes.CREATE_OR_UPDATE_CATEGORY:
+      const existingCategory = state.categories.find(item => item.id === payload.id);
+      const categories = (existingCategory)
+        ? state.categories.map(item => (item.id !== payload.id) ? item : payload)
+        : [...state.categories, payload];
+
+        return {
+        ...state,
+        categories
+      }
+
+    case actionTypes.DELETE_CATEGORY:
+      return {
+        ...state,
+        categories: state.categories.filter(cat => cat.id !== payload.id)
+      }
+
+    case actionTypes.CREATE_OR_UPDATE_EVENT: {
+
+      const existingEvent = state.events.find(item => item.id === payload.id);
+      const events = (existingEvent)
+        ? state.events.map(item => (item.id !== payload.id) ? item : payload)
+        : [...state.events, payload]
+
+      return {
+        ...state,
+        events
+      }
+    }
+
+    case actionTypes.DELETE_EVENT:
+      return {
+        ...state,
+        events: state.events.filter(evt => evt.id !== payload.id)
+      }
+
+    case actionTypes.DELETE_ATTRIBUTE:
+      return {
+        ...state,
+        attributes: state.attributes.filter(attr => attr.id !== payload.id)
+      }
     default:
       return state;
   }

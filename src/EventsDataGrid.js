@@ -61,9 +61,18 @@ const useStyles = makeStyles(theme => ({
     maxHeight: 850,
     overflow: 'auto',
   },
+  title: {
+    flexGrow: 1,
+  },
   button: {
     margin: theme.spacing(1),
   },
+  attributeButton: {
+    minWidth: 0
+  },
+  select: {
+    height: '2.4rem'
+  }
 }));
 
 const dialogStates = {
@@ -88,6 +97,21 @@ export default function EventsDataGrid() {
     setRowsPerPage(event.target.value);
     setPage(0);
   };
+
+  const handleAddClick = () => {
+    const nextId = Math.max(...events.map(item => item.id)) + 1;
+    const event = {
+      id: nextId,
+      name: '',
+      displayName: '',
+      description: '',
+      aliases: [],
+      attributes: []
+    };
+
+    setEvent(event)
+    setDialog({ ...dialog, edit: true })
+  }
 
   const handleDeleteClick = (rowData) => {
     setDialog({ ...dialog, delete: true })
@@ -172,9 +196,16 @@ export default function EventsDataGrid() {
     <Paper className={classes.root}>
       <div className={classes.tableWrapper}>
       <Toolbar>
-        <Typography variant="h6">
+        <Typography className={classes.title} variant="h6">
           Table of Events
         </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleAddClick}
+        >
+          Add new record
+        </Button>
       </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
           <TableHead>
@@ -290,7 +321,7 @@ export default function EventsDataGrid() {
               {
                 event?.attributes?.map(item => (
                   <>
-                    <Grid item xs={6}>{item.name}</Grid>
+                    <Grid item xs={7}>{item.name}</Grid>
                     <Grid item xs={2}>
                       <Checkbox
                         checked={item.required}
@@ -309,31 +340,33 @@ export default function EventsDataGrid() {
                       />
                       No
                     </Grid>
-                    <Grid item xs={2}>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        onClick={() => handleRemoveAttributeClick(item.name)}
-                      >
-                        -
-                      </Button>
+                    <Grid item xs={1}>
+                      <div style={{textAlign: 'right'}}>
+                        <Button
+                          className={classes.attributeButton}
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          onClick={() => handleRemoveAttributeClick(item.name)}
+                        >
+                          -
+                        </Button>
+                      </div>
                     </Grid>
                   </>
                 ))
               }
           </Grid>
-
           <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
-
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <Typography variant="h6">
                 Available Attributes
               </Typography>
             </Grid>
-            <Grid item xs={10}>
+            <Grid item xs={11}>
               <Select
+                className={classes.select}
                 label="Available Attributes"
                 fullWidth
                 size="small"
@@ -344,15 +377,18 @@ export default function EventsDataGrid() {
                 {availableAttributes.map(item => (<MenuItem value={item.name}>{item.name}</MenuItem>))}
               </Select>
             </Grid>
-            <Grid item xs={2}>
-              <Button
-                variant="outlined"
-                color="primary"
-                size="small"
-                onClick={handleAddAttributeClick}
-              >
-                +
-              </Button>
+            <Grid item xs={1}>
+              <div style={{textAlign: 'right'}}>
+                <Button
+                  className={classes.attributeButton}
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={handleAddAttributeClick}
+                >
+                  +
+                </Button>
+              </div>
             </Grid>
           </Grid>
           <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
@@ -395,13 +431,10 @@ export default function EventsDataGrid() {
             variant="contained"
             autoFocus
           >
-            Yes, delete.
+            Yes, delete
           </Button>
         </DialogActions>
       </Dialog>
-      <pre>
-        {JSON.stringify(event, null, 4)}
-      </pre>
     </Paper>
   );
 }

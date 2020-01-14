@@ -70,7 +70,7 @@ export default function App() {
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const [tabIndex, setTabIndex] = React.useState(2);
+  const [tabIndex, setTabIndex] = React.useState(0);
 
   const appContext = useMemo(() => ([state, dispatch]), [state, dispatch]);
 
@@ -92,7 +92,7 @@ export default function App() {
 
     axios.get(`https://api.github.com/repos/${state.git.username}/${state.git.repository}/contents/${state.git.catalogPath}`, {
       headers: {
-        'Authorization': `Basic ${state.git.accessToken}`
+        'Authorization': `Basic ${btoa(state.git.accessToken)}`
       }
     })
     .then(({ data }) => {
@@ -111,23 +111,25 @@ export default function App() {
       })
     })
     .catch(error => console.log(error))
-  }, [state.git]);
+  }, [state.git, state.sha]);
 
   const handleSaveAllClick = e => {
     const { products, categories, events, attributes } = state;
 
     axios.put(`https://api.github.com/repos/${state.git.username}/${state.git.repository}/contents/${state.git.catalogPath}`, {
-      "message": "updating...",
-      "content": btoa(JSON.stringify({ products, categories, events, attributes })),
-      "sha": state.sha
-    },{
+      message: "updating...",
+      content: btoa(JSON.stringify({ products, categories, events, attributes })),
+      sha: state.sha
+    }, {
       headers: {
-        'Authorization': `Basic ${state.git.accessToken}`
-      },
+        'Authorization': `Basic ${btoa(state.git.accessToken)}`
+      }
     })
     .then(response => {
-      console.log('SUCCESS', response)
-      alert('success')
+      dispatch({
+        type: actionTypes.SET_SHA,
+        payload: response.data.content.sha
+      })
     })
     .catch(error => console.log(error))
   }

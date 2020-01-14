@@ -39,8 +39,9 @@ TabPanel.propTypes = {
 };
 
 const read = (callback) => {
+  const props = (process.env.NODE_ENV === 'production' ? 'application.properties' : 'application.properties.dev')
   try {
-    const content = fs.readFileSync('application.properties.dev', 'UTF-8')
+    const content = fs.readFileSync(props, 'UTF-8')
 
     //  parse application properties from string to json
     const json = content.split('\n').reduce((acc, curr) => {
@@ -69,12 +70,10 @@ const useStyles = makeStyles(theme => ({
 export default function App() {
 
   const [state, dispatch] = useReducer(reducer, initialState);
-
   const [tabIndex, setTabIndex] = React.useState(0);
+  const classes = useStyles();
 
   const appContext = useMemo(() => ([state, dispatch]), [state, dispatch]);
-
-  const classes = useStyles();
 
   React.useEffect(() => {
     read((result) => {
@@ -84,7 +83,6 @@ export default function App() {
       })
     });
   }, [])
-
 
   useEffect(() => {
 

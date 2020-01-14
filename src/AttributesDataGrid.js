@@ -98,6 +98,9 @@ const useStyles = makeStyles(theme => ({
     maxHeight: 850,
     overflow: 'auto',
   },
+  title: {
+    flexGrow: 1,
+  },
   button: {
     margin: theme.spacing(1),
   },
@@ -106,7 +109,7 @@ const useStyles = makeStyles(theme => ({
   },
   select: {
     height: '2.4rem'
-  }
+  },
 }));
 
 export default function AttributesDataGrid() {
@@ -132,6 +135,20 @@ export default function AttributesDataGrid() {
     setAttribute(rowData)
   }
 
+  const handleOnSaveCancel = () => {
+    setAttribute()
+    setDialog({ ...dialog, edit: false })
+  }
+
+  const handleOnSaveConfirm = () => {
+    dispatch({
+      type: actionTypes.CREATE_OR_UPDATE_ATTRIBUTE,
+      payload: attribute
+    })
+
+    setDialog({ ...dialog, edit: false })
+  }
+
   const handleDeleteClick = (rowData) => {
     setDialog({ ...dialog, delete: true })
     setAttribute(rowData)
@@ -153,6 +170,27 @@ export default function AttributesDataGrid() {
 
   const handleInputChange = e => {
     setAttribute({ ...attribute, [e.target.name]: e.target.value })
+  }
+
+  const handleNewRecordClick = () => {
+    const nextId = Math.max(...attributes.map(item => item.id)) + 1;
+    const attribute = {
+      id: nextId,
+      name: '',
+      displayName: '',
+      description: '',
+      dataType: '',
+      indexed: false,
+      sortable: false,
+      required: false,
+      requestContext: false,
+      examples: null,
+      aliases: [],
+      constraints: [],
+      catalogId: "DEFAULT",
+    };
+    setAttribute(attribute)
+    setDialog({ ...dialog, edit: false })
   }
 
   const handleConstraintChange = e => {
@@ -181,9 +219,16 @@ export default function AttributesDataGrid() {
     <Paper className={classes.root}>
       <div className={classes.tableWrapper}>
       <Toolbar>
-        <Typography variant="h6">
+        <Typography className={classes.title} variant="h6">
           Table of Attributes
         </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleNewRecordClick}
+        >
+          Add new record
+        </Button>
       </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
           <TableHead>
@@ -449,11 +494,11 @@ export default function AttributesDataGrid() {
             </Grid>
             <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
             <DialogActions>
-              <Button onClick={() => setDialog({...dialog, edit: false})} variant="contained">
+              <Button onClick={handleOnSaveCancel} variant="contained">
                 Cancel
               </Button>
               <Button
-                // onClick={handleSave}
+                onClick={handleOnSaveConfirm}
                 color="primary"
                 variant="contained"
               >
@@ -494,11 +539,11 @@ export default function AttributesDataGrid() {
           </DialogActions>
         </Dialog>
       )}
-      {/* <pre>
+      <pre>
         {
           JSON.stringify(attribute, null, 4)
         }
-      </pre> */}
+      </pre>
     </Paper>
   );
 }

@@ -181,7 +181,6 @@ export default function ProductsDataGrid() {
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                   {columns.map((column, index) => {
                     const value = row[column.id];
-                    console.log({value})
                       return (column.id === 'actions') ? (
                         <TableCell key={index}>
                           <Button

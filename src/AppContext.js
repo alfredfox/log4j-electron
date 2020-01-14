@@ -20,6 +20,7 @@ const actionTypes = {
   DELETE_EVENT: "DELETE_EVENT",
   CREATE_OR_UPDATE_ATTRIBUTE: "CREATE_OR_UPDATE_ATTRIBUTE",
   DELETE_ATTRIBUTE: "DELETE_ATTRIBUTE",
+  SET_SHA: 'SET_SHA'
 };
 
 const AppContext = createContext(initialState);

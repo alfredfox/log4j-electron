@@ -76,6 +76,13 @@ export const reducer = (state, action) => {
         ...state,
         attributes: state.attributes.filter(attr => attr.id !== payload.id)
       }
+
+    case actionTypes.SET_SHA:
+      return {
+        ...state,
+        sha: payload.sha
+      }
+
     default:
       return state;
   }

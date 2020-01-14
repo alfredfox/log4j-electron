@@ -98,6 +98,9 @@ const useStyles = makeStyles(theme => ({
     maxHeight: 850,
     overflow: 'auto',
   },
+  title: {
+    flexGrow: 1,
+  },
   button: {
     margin: theme.spacing(1),
   },
@@ -106,7 +109,7 @@ const useStyles = makeStyles(theme => ({
   },
   select: {
     height: '2.4rem'
-  }
+  },
 }));
 
 export default function AttributesDataGrid() {
@@ -169,6 +172,27 @@ export default function AttributesDataGrid() {
     setAttribute({ ...attribute, [e.target.name]: e.target.value })
   }
 
+  const handleNewRecordClick = () => {
+    const nextId = Math.max(...attributes.map(item => item.id)) + 1;
+    const attribute = {
+      id: nextId,
+      name: '',
+      displayName: '',
+      description: '',
+      dataType: '',
+      indexed: false,
+      sortable: false,
+      required: false,
+      requestContext: false,
+      examples: null,
+      aliases: [],
+      constraints: [],
+      catalogId: "DEFAULT",
+    };
+    setAttribute(attribute)
+    setDialog({ ...dialog, edit: false })
+  }
+
   const handleConstraintChange = e => {
     setConstraint({...constraint, [e.target.name]: e.target.value})
   }
@@ -195,9 +219,16 @@ export default function AttributesDataGrid() {
     <Paper className={classes.root}>
       <div className={classes.tableWrapper}>
       <Toolbar>
-        <Typography variant="h6">
+        <Typography className={classes.title} variant="h6">
           Table of Attributes
         </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleNewRecordClick}
+        >
+          Add new record
+        </Button>
       </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
           <TableHead>

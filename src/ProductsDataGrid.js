@@ -94,8 +94,8 @@ export default function ProductsDataGrid() {
     setProduct({ ...product, events })
   }
 
-  const handleAddClick = () => {
-    const nextId = Math.max(...products.map(product => product.id)) + 1;
+  const handleNewRecordClick = () => {
+    const nextId = Math.max(...products.map(item => item.id)) + 1;
     const product = {
       id: nextId,
       name: '',
@@ -156,7 +156,7 @@ export default function ProductsDataGrid() {
           <Button
             variant="outlined"
             color="primary"
-            onClick={handleAddClick}
+            onClick={handleNewRecordClick}
           >
             Add new record
           </Button>

@@ -132,6 +132,20 @@ export default function AttributesDataGrid() {
     setAttribute(rowData)
   }
 
+  const handleOnSaveCancel = () => {
+    setAttribute()
+    setDialog({ ...dialog, edit: false })
+  }
+
+  const handleOnSaveConfirm = () => {
+    dispatch({
+      type: actionTypes.CREATE_OR_UPDATE_ATTRIBUTE,
+      payload: attribute
+    })
+
+    setDialog({ ...dialog, edit: false })
+  }
+
   const handleDeleteClick = (rowData) => {
     setDialog({ ...dialog, delete: true })
     setAttribute(rowData)
@@ -449,11 +463,11 @@ export default function AttributesDataGrid() {
             </Grid>
             <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
             <DialogActions>
-              <Button onClick={() => setDialog({...dialog, edit: false})} variant="contained">
+              <Button onClick={handleOnSaveCancel} variant="contained">
                 Cancel
               </Button>
               <Button
-                // onClick={handleSave}
+                onClick={handleOnSaveConfirm}
                 color="primary"
                 variant="contained"
               >
@@ -494,11 +508,11 @@ export default function AttributesDataGrid() {
           </DialogActions>
         </Dialog>
       )}
-      {/* <pre>
+      <pre>
         {
           JSON.stringify(attribute, null, 4)
         }
-      </pre> */}
+      </pre>
     </Paper>
   );
 }

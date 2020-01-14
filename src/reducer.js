@@ -71,6 +71,19 @@ export const reducer = (state, action) => {
         events: state.events.filter(evt => evt.id !== payload.id)
       }
 
+      case actionTypes.CREATE_OR_UPDATE_ATTRIBUTE: {
+
+        const existingAttribute = state.attributes.find(item => item.id === payload.id);
+        const attributes = (existingAttribute)
+          ? state.attributes.map(item => (item.id !== payload.id) ? item : payload)
+          : [...state.attributes, payload]
+
+        return {
+          ...state,
+          attributes
+        }
+      }
+
     case actionTypes.DELETE_ATTRIBUTE:
       return {
         ...state,

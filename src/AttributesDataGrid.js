@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -38,46 +38,55 @@ const columns = [
     label: 'Description',
     minWidth: 170,
   },
-  // {
-  //   id: 'dataType',
-  //   label: 'Data Type',
-  //   minWidth: 80,
-  // },
-  // {
-  //   id: 'indexed',
-  //   label: 'Indexed',
-  //   minWidth: 80,
-  //   format: true
-  // },
-  // {
-  //   id: 'sortable',
-  //   label: 'Sortable',
-  //   minWidth: 80,
-  //   format: true
-  // },
-  // {
-  //   id: 'required',
-  //   label: 'Required',
-  //   minWidth: 80,
-  //   format: true
-  // },
-  // {
-  //   id: 'requestContext',
-  //   label: 'Request Context',
-  //   minWidth: 120,
-  //   format: true
-  // },
-  // {
-  //   id: 'constraints',
-  //   label: 'Constraints',
-  //   // minWidth: 170,
-  //   format: true
-  // },
+  {
+    id: 'dataType',
+    label: 'Data Type',
+    minWidth: 80,
+  },
+  {
+    id: 'indexed',
+    label: 'Indexed',
+    minWidth: 80,
+    format: true
+  },
+  {
+    id: 'sortable',
+    label: 'Sortable',
+    minWidth: 80,
+    format: true
+  },
+  {
+    id: 'required',
+    label: 'Required',
+    minWidth: 80,
+    format: true
+  },
+  {
+    id: 'requestContext',
+    label: 'Request Context',
+    minWidth: 120,
+    format: true
+  },
+  {
+    id: 'constraints',
+    label: 'Constraints',
+    format: true
+  },
   {
     id: 'actions',
     label: '',
     minWidth: 200
   }
+];
+
+const CONSTRAINTS = [
+  {value: "anycaseenum", label: "ANYCASEENUM"},
+  {value: "enum", label: "ENUM"},
+  {value: "maxlength", label: "MAXLENGTH"},
+  {value: "maxvalue", label: "MAXVALUE"},
+  {value: "minlength", label: "MINLENGTH"},
+  {value: "minvalue", label: "MINVALUE"},
+  {value: "pattern", label: "PATTERN"},
 ];
 
 const useStyles = makeStyles(theme => ({
@@ -88,19 +97,26 @@ const useStyles = makeStyles(theme => ({
     maxHeight: 850,
     overflow: 'auto',
   },
+  title: {
+    flexGrow: 1,
+  },
   button: {
     margin: theme.spacing(1),
   },
+  constraintButton: {
+    minWidth: 0
+  },
   select: {
     height: '2.4rem'
-  }
+  },
 }));
 
 export default function AttributesDataGrid() {
   const [{ attributes }, dispatch] = useContext(AppContext)
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [attribute, setAttribute] = useState()
+  const [attribute, setAttribute] = useState('');
+  const [constraint, setConstraint] = useState('');
   const [dialog, setDialog] = useState({ delete: false, edit: false});
   const classes = useStyles();
 
@@ -116,6 +132,20 @@ export default function AttributesDataGrid() {
   const handleEditClick = (rowData) => {
     setDialog({ ...dialog, edit: true })
     setAttribute(rowData)
+  }
+
+  const handleOnSaveCancel = () => {
+    setAttribute()
+    setDialog({ ...dialog, edit: false })
+  }
+
+  const handleOnSaveConfirm = () => {
+    dispatch({
+      type: actionTypes.CREATE_OR_UPDATE_ATTRIBUTE,
+      payload: attribute
+    })
+
+    setDialog({ ...dialog, edit: false })
   }
 
   const handleDeleteClick = (rowData) => {
@@ -141,13 +171,63 @@ export default function AttributesDataGrid() {
     setAttribute({ ...attribute, [e.target.name]: e.target.value })
   }
 
+  const handleNewRecordClick = () => {
+    const nextId = Math.max(...attributes.map(item => item.id)) + 1;
+    const attribute = {
+      id: nextId,
+      name: '',
+      displayName: '',
+      description: '',
+      dataType: 'INT',
+      indexed: false,
+      sortable: false,
+      required: false,
+      requestContext: false,
+      examples: null,
+      aliases: [],
+      constraints: [],
+      catalogId: "DEFAULT",
+    };
+    setAttribute(attribute)
+    setDialog({ ...dialog, edit: true })
+  }
+
+  const handleConstraintChange = e => {
+    setConstraint({...constraint, [e.target.name]: e.target.value})
+  }
+
+  const handleAddConstraintClick = e => {
+    const newConstraint = {
+      constraintType: {
+        name: constraint.name
+      },
+      value: constraint.value || ""
+    }
+    setAttribute({...attribute, constraints: [...attribute.constraints, newConstraint]})
+    setConstraint()
+  }
+
+  const attributeConstraints = useMemo(() => {
+    if (!attribute) return [];
+
+    const constraintList = attribute?.constraints?.map(item => item.constraintType.name);
+    return CONSTRAINTS.filter(item => constraintList?.includes(item.value) === false)
+  }, [attribute])
+
   return (
     <Paper className={classes.root}>
       <div className={classes.tableWrapper}>
       <Toolbar>
-        <Typography variant="h6">
+        <Typography className={classes.title} variant="h6">
           Table of Attributes
         </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={handleNewRecordClick}
+        >
+          Add new record
+        </Button>
       </Toolbar>
         <Table stickyHeader aria-label="sticky table" height="80vh">
           <TableHead>
@@ -190,11 +270,10 @@ export default function AttributesDataGrid() {
                         </TableCell>
                       ) : (
                         <TableCell key={column.id} align={column.align}>
-                          {
-                            (column.format && Array.isArray(value)) && (value.map(val => (
-                              <div >&bull; {val.constraintType.name}("{val.value}")</div>
-                            )))
-                          }
+                          {(column.format && Array.isArray(value)) && (value.map(val => (
+                              <div>{val.constraintType.name}({val.value})</div>
+                            ))
+                          )}
                           {
                             column.format && typeof value === "boolean" && JSON.stringify(value)
                           }
@@ -344,39 +423,6 @@ export default function AttributesDataGrid() {
                   <MenuItem value={false}>false</MenuItem>
                 </Select>
               </Grid>
-              {/*
-
-    "id": 9,
-      "name": "account",
-      "displayName": "Account Number",
-      "description": "Accopunt number",
-    "dataType": "INT",
-    "indexed": false,
-    "sortable": false,
-    "required": true,
-    "requestContext": false,
-    "examples": null,
-    "aliases": [],
-    "constraints": [],
-    "catalogId": "DEFAULT"
-
-              <Grid item xs={12}>
-                <p>Assigned Events</p>
-                {
-                  state?.attributes?.map(item => (
-                    <div>
-                      <Checkbox
-                        checked={attribute?.attributes?.includes(item.name)}
-                        onChange={() => handleAssignedEventChange(item.name)}
-                        color="primary"
-                        inputProps={{ 'aria-label': 'primary checkbox' }}
-                      />
-                      {item.displayName}
-                    </div>
-                  ))
-                }
-              </Grid>
-          */}
             </Grid>
             <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
             <Grid container spacing={2}>
@@ -384,6 +430,13 @@ export default function AttributesDataGrid() {
                 <Typography variant="h6">
                   Assigned Constraints
                 </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                {attribute.constraints.map(item => (
+                  <div key={item.constraintType.name}>
+                    &bull; {item.constraintType.name} : {item.value}
+                  </div>)
+                )}
               </Grid>
             </Grid>
             <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
@@ -394,13 +447,57 @@ export default function AttributesDataGrid() {
                 </Typography>
               </Grid>
             </Grid>
+            <Grid container spacing={2}>
+              <Grid item xs={4}>
+                <Select
+                    className={classes.select}
+                    fullWidth
+                    name="name"
+                    value={constraint?.name || ''}
+                    variant="outlined"
+                    onChange={handleConstraintChange}
+                >
+                  {(attributeConstraints?.map(item => (
+                      <MenuItem
+                        key={item.value}
+                        value={item.value}
+                      >
+                        {item.label}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </Grid>
+              <Grid item xs={7}>
+                <TextField
+                  name="value"
+                  label="Constraint Value"
+                  fullWidth
+                  size="small"
+                  variant="outlined"
+                  value={constraint?.value || ''}
+                  onChange={handleConstraintChange}
+                />
+              </Grid>
+              <Grid item xs={1}>
+                <Button
+                  className={classes.constraintButton}
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={handleAddConstraintClick}
+                >
+                  +
+                </Button>
+              </Grid>
+            </Grid>
             <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
             <DialogActions>
-              <Button onClick={() => setDialog({...dialog, edit: false})} variant="contained">
+              <Button onClick={handleOnSaveCancel} variant="contained">
                 Cancel
               </Button>
               <Button
-                // onClick={handleSave}
+                onClick={handleOnSaveConfirm}
                 color="primary"
                 variant="contained"
               >

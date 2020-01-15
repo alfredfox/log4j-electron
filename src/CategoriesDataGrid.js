@@ -96,8 +96,8 @@ export default function CategoriesDataGrid() {
     setCategory({ ...category, events })
   }
 
-  const handleAddClick = () => {
-    const nextId = Math.max(...categories.map(cat => cat.id)) + 1;
+  const handleNewRecordClick = () => {
+    const nextId = Math.max(...categories.map(item => item.id)) + 1;
     const product = {
       id: nextId,
       name: '',
@@ -158,7 +158,7 @@ export default function CategoriesDataGrid() {
           <Button
             variant="outlined"
             color="primary"
-            onClick={handleAddClick}
+            onClick={handleNewRecordClick}
           >
             Add new record
           </Button>

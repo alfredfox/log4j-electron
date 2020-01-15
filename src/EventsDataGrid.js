@@ -98,7 +98,7 @@ export default function EventsDataGrid() {
     setPage(0);
   };
 
-  const handleAddClick = () => {
+  const handleNewRecordClick = () => {
     const nextId = Math.max(...events.map(item => item.id)) + 1;
     const event = {
       id: nextId,
@@ -202,7 +202,7 @@ export default function EventsDataGrid() {
         <Button
           variant="outlined"
           color="primary"
-          onClick={handleAddClick}
+          onClick={handleNewRecordClick}
         >
           Add new record
         </Button>

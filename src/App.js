@@ -39,8 +39,9 @@ TabPanel.propTypes = {
 };
 
 const read = (callback) => {
+  const props = (process.env.NODE_ENV === 'production' ? 'application.properties' : 'application.properties.dev')
   try {
-    const content = fs.readFileSync('application.properties.dev', 'UTF-8')
+    const content = fs.readFileSync(props, 'UTF-8')
 
     //  parse application properties from string to json
     const json = content.split('\n').reduce((acc, curr) => {
@@ -69,12 +70,10 @@ const useStyles = makeStyles(theme => ({
 export default function App() {
 
   const [state, dispatch] = useReducer(reducer, initialState);
-
-  const [tabIndex, setTabIndex] = React.useState(2);
+  const [tabIndex, setTabIndex] = React.useState(0);
+  const classes = useStyles();
 
   const appContext = useMemo(() => ([state, dispatch]), [state, dispatch]);
-
-  const classes = useStyles();
 
   React.useEffect(() => {
     read((result) => {
@@ -85,14 +84,13 @@ export default function App() {
     });
   }, [])
 
-
   useEffect(() => {
 
     if (!state.git) return;
 
     axios.get(`https://api.github.com/repos/${state.git.username}/${state.git.repository}/contents/${state.git.catalogPath}`, {
       headers: {
-        'Authorization': `Basic ${state.git.accessToken}`
+        'Authorization': `Basic ${btoa(state.git.accessToken)}`
       }
     })
     .then(({ data }) => {
@@ -111,23 +109,25 @@ export default function App() {
       })
     })
     .catch(error => console.log(error))
-  }, [state.git]);
+  }, [state.git, state.sha]);
 
   const handleSaveAllClick = e => {
     const { products, categories, events, attributes } = state;
 
     axios.put(`https://api.github.com/repos/${state.git.username}/${state.git.repository}/contents/${state.git.catalogPath}`, {
-      "message": "updating...",
-      "content": btoa(JSON.stringify({ products, categories, events, attributes })),
-      "sha": state.sha
-    },{
+      message: "updating...",
+      content: btoa(JSON.stringify({ products, categories, events, attributes })),
+      sha: state.sha
+    }, {
       headers: {
-        'Authorization': `Basic ${state.git.accessToken}`
-      },
+        'Authorization': `Basic ${btoa(state.git.accessToken)}`
+      }
     })
     .then(response => {
-      console.log('SUCCESS', response)
-      alert('success')
+      dispatch({
+        type: actionTypes.SET_SHA,
+        payload: response.data.content.sha
+      })
     })
     .catch(error => console.log(error))
   }

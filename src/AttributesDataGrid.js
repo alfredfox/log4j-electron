@@ -38,41 +38,40 @@ const columns = [
     label: 'Description',
     minWidth: 170,
   },
-  // {
-  //   id: 'dataType',
-  //   label: 'Data Type',
-  //   minWidth: 80,
-  // },
-  // {
-  //   id: 'indexed',
-  //   label: 'Indexed',
-  //   minWidth: 80,
-  //   format: true
-  // },
-  // {
-  //   id: 'sortable',
-  //   label: 'Sortable',
-  //   minWidth: 80,
-  //   format: true
-  // },
-  // {
-  //   id: 'required',
-  //   label: 'Required',
-  //   minWidth: 80,
-  //   format: true
-  // },
-  // {
-  //   id: 'requestContext',
-  //   label: 'Request Context',
-  //   minWidth: 120,
-  //   format: true
-  // },
-  // {
-  //   id: 'constraints',
-  //   label: 'Constraints',
-  //   // minWidth: 170,
-  //   format: true
-  // },
+  {
+    id: 'dataType',
+    label: 'Data Type',
+    minWidth: 80,
+  },
+  {
+    id: 'indexed',
+    label: 'Indexed',
+    minWidth: 80,
+    format: true
+  },
+  {
+    id: 'sortable',
+    label: 'Sortable',
+    minWidth: 80,
+    format: true
+  },
+  {
+    id: 'required',
+    label: 'Required',
+    minWidth: 80,
+    format: true
+  },
+  {
+    id: 'requestContext',
+    label: 'Request Context',
+    minWidth: 120,
+    format: true
+  },
+  {
+    id: 'constraints',
+    label: 'Constraints',
+    format: true
+  },
   {
     id: 'actions',
     label: '',
@@ -179,7 +178,7 @@ export default function AttributesDataGrid() {
       name: '',
       displayName: '',
       description: '',
-      dataType: '',
+      dataType: 'INT',
       indexed: false,
       sortable: false,
       required: false,
@@ -190,7 +189,7 @@ export default function AttributesDataGrid() {
       catalogId: "DEFAULT",
     };
     setAttribute(attribute)
-    setDialog({ ...dialog, edit: false })
+    setDialog({ ...dialog, edit: true })
   }
 
   const handleConstraintChange = e => {
@@ -272,7 +271,7 @@ export default function AttributesDataGrid() {
                       ) : (
                         <TableCell key={column.id} align={column.align}>
                           {(column.format && Array.isArray(value)) && (value.map(val => (
-                              <div>&bull; {val.constraintType.name}("{val.value}")</div>
+                              <div>{val.constraintType.name}({val.value})</div>
                             ))
                           )}
                           {

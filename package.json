@@ -1,5 +1,6 @@
 {
   "name": "log4j-electron",
+  "projectName": "Catalog Editor",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -67,7 +68,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\""
+    "electron-dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -142,6 +143,7 @@
     "concurrently": "^4.1.1",
     "electron": "^5.0.8",
     "electron-builder": "^21.1.5",
+    "electron-packager": "^14.2.0",
     "wait-on": "^3.3.0"
   }
 }

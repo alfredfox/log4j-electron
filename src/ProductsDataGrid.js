@@ -244,7 +244,9 @@ export default function ProductsDataGrid() {
                   id="name"
                   label="Name"
                   fullWidth
+                  size="small"
                   value={product?.name || ''}
+                  variant="outlined"
                   onChange={handleInputChange}
                 />
               </Grid>
@@ -253,7 +255,9 @@ export default function ProductsDataGrid() {
                   id="displayName"
                   label="Display Name"
                   fullWidth
+                  size="small"
                   value={product?.displayName || ''}
+                  variant="outlined"
                   onChange={handleInputChange}
                 />
               </Grid>
@@ -262,7 +266,9 @@ export default function ProductsDataGrid() {
                   id="description"
                   label="Description"
                   fullWidth
+                  size="small"
                   value={product?.description || ''}
+                  variant="outlined"
                   onChange={handleInputChange}
                 />
               </Grid>

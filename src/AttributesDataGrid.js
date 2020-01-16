@@ -111,13 +111,18 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const initialDialogStates = {
+  delete: false,
+  edit: false
+}
+
 export default function AttributesDataGrid() {
   const [{ attributes }, dispatch] = useContext(AppContext)
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  const [attribute, setAttribute] = useState('');
-  const [constraint, setConstraint] = useState('');
-  const [dialog, setDialog] = useState({ delete: false, edit: false});
+  const [attribute, setAttribute] = useState();
+  const [constraint, setConstraint] = useState();
+  const [dialog, setDialog] = useState(initialDialogStates);
   const classes = useStyles();
 
   const handleChangePage = (event, newPage) => {
@@ -135,8 +140,8 @@ export default function AttributesDataGrid() {
   }
 
   const handleOnSaveCancel = () => {
-    setAttribute()
-    setDialog({ ...dialog, edit: false })
+    setAttribute();
+    closeDialogs();
   }
 
   const handleOnSaveConfirm = () => {
@@ -145,7 +150,7 @@ export default function AttributesDataGrid() {
       payload: attribute
     })
 
-    setDialog({ ...dialog, edit: false })
+    closeDialogs();
   }
 
   const handleDeleteClick = (rowData) => {
@@ -154,8 +159,8 @@ export default function AttributesDataGrid() {
   }
 
   const handleOnDeleteCancel = () => {
-    setAttribute()
-    setDialog({...dialog, delete: false})
+    setAttribute();
+    closeDialogs();
   }
 
   const handleOnDeleteConfirm = () => {
@@ -163,8 +168,8 @@ export default function AttributesDataGrid() {
       type: actionTypes.DELETE_ATTRIBUTE,
       payload: attribute
     })
-    setAttribute()
-    setDialog({...dialog, delete: false})
+    setAttribute();
+    closeDialogs();
   }
 
   const handleInputChange = e => {
@@ -203,8 +208,13 @@ export default function AttributesDataGrid() {
       },
       value: constraint.value || ""
     }
-    setAttribute({...attribute, constraints: [...attribute.constraints, newConstraint]})
+    setAttribute({...attribute, constraints: [...attribute.constraints, newConstraint]});
     setConstraint()
+  }
+
+  const handleRemoveConstraintClick = name => {
+    const constraints = attribute.constraints.filter(item => (item.constraintType.name !== name))
+    setAttribute({ ...attribute, constraints });
   }
 
   const attributeConstraints = useMemo(() => {
@@ -213,6 +223,10 @@ export default function AttributesDataGrid() {
     const constraintList = attribute?.constraints?.map(item => item.constraintType.name);
     return CONSTRAINTS.filter(item => constraintList?.includes(item.value) === false)
   }, [attribute])
+
+  const closeDialogs = () => {
+    setDialog(initialDialogStates)
+  }
 
   return (
     <Paper className={classes.root}>
@@ -299,7 +313,7 @@ export default function AttributesDataGrid() {
         onChangeRowsPerPage={handleChangeRowsPerPage}
       />
       {(dialog.edit) && (
-        <Dialog open onClose={() => setDialog({...dialog, edit: false})}>
+        <Dialog open onClose={closeDialogs}>
           <DialogTitle>Edit Attribute</DialogTitle>
           <DialogContent>
             <Grid container spacing={2}>
@@ -431,13 +445,22 @@ export default function AttributesDataGrid() {
                   Assigned Constraints
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
                 {attribute.constraints.map(item => (
-                  <div key={item.constraintType.name}>
-                    &bull; {item.constraintType.name} : {item.value}
-                  </div>)
-                )}
-              </Grid>
+                  <React.Fragment key={item.constraintType.name}>
+                    <Grid item xs={11}>{item.constraintType.name}({item.value})</Grid>
+                    <Grid item xs={1}>
+                      <Button
+                        className={classes.constraintButton}
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        onClick={() => handleRemoveConstraintClick(item.constraintType.name)}
+                      >
+                        -
+                      </Button>
+                    </Grid>
+                  </React.Fragment>
+                ))}
             </Grid>
             <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
             <Grid container spacing={2}>
@@ -510,7 +533,7 @@ export default function AttributesDataGrid() {
       {(dialog.delete) && (
         <Dialog
           open
-          onClose={() => setDialog({...dialog, delete: false})}
+          onClose={closeDialogs}
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
         >
@@ -538,11 +561,6 @@ export default function AttributesDataGrid() {
           </DialogActions>
         </Dialog>
       )}
-      <pre>
-        {
-          JSON.stringify(attribute, null, 4)
-        }
-      </pre>
     </Paper>
   );
 }

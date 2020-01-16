@@ -66,7 +66,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const initialDialogs = {
+const initialDialogStates = {
   delete: false,
   edit: false
 }
@@ -76,7 +76,7 @@ export default function CategoriesDataGrid() {
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [category, setCategory] = useState()
-  const [dialog, setDialog] = useState(initialDialogs);
+  const [dialog, setDialog] = useState(initialDialogStates);
 
   const classes = useStyles();
 
@@ -154,7 +154,7 @@ export default function CategoriesDataGrid() {
   }
 
   const closeDialogs = () => {
-    setDialog(initialDialogs)
+    setDialog(initialDialogStates)
   }
 
   return (

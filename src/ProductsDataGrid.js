@@ -65,7 +65,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const initialDialogs = {
+const initialDialogStates = {
   delete: false,
   edit: false
 }
@@ -75,7 +75,7 @@ export default function ProductsDataGrid() {
   const [page, setPage] =  useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [product, setProduct] = useState()
-  const [dialog, setDialog] = useState(initialDialogs);
+  const [dialog, setDialog] = useState(initialDialogStates);
   const classes = useStyles();
 
   const handleChangePage = (event, newPage) => {
@@ -152,7 +152,7 @@ export default function ProductsDataGrid() {
   }
 
   const closeDialogs = () => {
-    setDialog(initialDialogs)
+    setDialog(initialDialogStates)
   }
 
   return (

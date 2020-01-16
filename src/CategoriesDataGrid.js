@@ -242,7 +242,9 @@ export default function CategoriesDataGrid() {
                   id="name"
                   label="Name"
                   fullWidth
+                  size="small"
                   value={category?.name || ''}
+                  variant="outlined"
                   onChange={handleInputChange}
                 />
               </Grid>
@@ -251,7 +253,9 @@ export default function CategoriesDataGrid() {
                   id="displayName"
                   label="Display Name"
                   fullWidth
+                  size="small"
                   value={category?.displayName || ''}
+                  variant="outlined"
                   onChange={handleInputChange}
                 />
               </Grid>
@@ -260,7 +264,9 @@ export default function CategoriesDataGrid() {
                   id="description"
                   label="Description"
                   fullWidth
+                  size="small"
                   value={category?.description || ''}
+                  variant="outlined"
                   onChange={handleInputChange}
                 />
               </Grid>

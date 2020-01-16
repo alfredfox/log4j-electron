@@ -65,12 +65,17 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const initialDialogStates = {
+  delete: false,
+  edit: false
+}
+
 export default function ProductsDataGrid() {
   const [{ products, events }, dispatch] = useContext(AppContext)
   const [page, setPage] =  useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [product, setProduct] = useState()
-  const [dialog, setDialog] = useState({ delete: false, product: false});
+  const [dialog, setDialog] = useState(initialDialogStates);
   const classes = useStyles();
 
   const handleChangePage = (event, newPage) => {
@@ -105,11 +110,11 @@ export default function ProductsDataGrid() {
       events: []
     };
     setProduct(product)
-    setDialog({ ...dialog, product: true })
+    setDialog({ ...dialog, edit: true })
   }
 
   const handleEditClick = (rowData) => {
-    setDialog({ ...dialog, product: true })
+    setDialog({ ...dialog, edit: true })
     setProduct(rowData)
   }
 
@@ -120,7 +125,7 @@ export default function ProductsDataGrid() {
 
   const handleOnSaveCancel = () => {
     setProduct()
-    setDialog({ ...dialog, product: false })
+    closeDialogs()
   }
 
   const handleOnSaveConfirm = () => {
@@ -129,12 +134,12 @@ export default function ProductsDataGrid() {
       payload: product
     })
 
-    setDialog({ ...dialog, product: false })
+    closeDialogs()
   }
 
   const handleOnDeleteCancel = () => {
     setProduct()
-    setDialog({...dialog, delete: false})
+    closeDialogs()
   }
 
   const handleOnDeleteConfirm = () => {
@@ -143,7 +148,11 @@ export default function ProductsDataGrid() {
       payload: product
     })
     setProduct()
-    setDialog({...dialog, delete: false})
+    closeDialogs()
+  }
+
+  const closeDialogs = () => {
+    setDialog(initialDialogStates)
   }
 
   return (
@@ -225,98 +234,107 @@ export default function ProductsDataGrid() {
         onChangePage={handleChangePage}
         onChangeRowsPerPage={handleChangeRowsPerPage}
       />
-      <Dialog open={dialog.product} onClose={() => setDialog({...dialog, product: false})}>
-        <DialogTitle>Edit Product</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                id="name"
-                label="Name"
-                fullWidth
-                value={product?.name || ''}
-                onChange={handleInputChange}
-              />
+      {(dialog.edit) && (
+        <Dialog open onClose={closeDialogs}>
+          <DialogTitle>Edit Product</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  id="name"
+                  label="Name"
+                  fullWidth
+                  size="small"
+                  value={product?.name || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  id="displayName"
+                  label="Display Name"
+                  fullWidth
+                  size="small"
+                  value={product?.displayName || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  id="description"
+                  label="Description"
+                  fullWidth
+                  size="small"
+                  value={product?.description || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <p>Assigned Events</p>
+                {
+                  events?.map(item => (
+                    <div key={item.name}>
+                      <Checkbox
+                        checked={product?.events?.includes(item.name)}
+                        onChange={() => handleAssignedEventChange(item.name)}
+                        color="primary"
+                        inputProps={{ 'aria-label': 'primary checkbox' }}
+                      />
+                      {item.displayName}
+                    </div>
+                  ))
+                }
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                id="displayName"
-                label="Display Name"
-                fullWidth
-                value={product?.displayName || ''}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                id="description"
-                label="Description"
-                fullWidth
-                value={product?.description || ''}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <p>Assigned Events</p>
-              {
-                events?.map(item => (
-                  <div key={item.name}>
-                    <Checkbox
-                      checked={product?.events?.includes(item.name)}
-                      onChange={() => handleAssignedEventChange(item.name)}
-                      color="primary"
-                      inputProps={{ 'aria-label': 'primary checkbox' }}
-                    />
-                    {item.displayName}
-                  </div>
-                ))
-              }
-            </Grid>
-
-          </Grid>
+            <DialogActions>
+              <Button onClick={handleOnSaveCancel} variant="contained">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleOnSaveConfirm}
+                color="primary"
+                variant="contained"
+              >
+                Save
+              </Button>
+            </DialogActions>
+          </DialogContent>
+        </Dialog>
+      )}
+      {(dialog.delete) && (
+        <Dialog
+          open
+          onClose={closeDialogs}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle>Delete Product?</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Are you sure you want to delete this product?
+            </DialogContentText>
+          </DialogContent>
           <DialogActions>
-            <Button onClick={handleOnSaveCancel} variant="contained">
+            <Button
+              onClick={handleOnDeleteCancel}
+              variant="contained"
+            >
               Cancel
             </Button>
             <Button
-              onClick={handleOnSaveConfirm}
-              color="primary"
+              onClick={handleOnDeleteConfirm}
+              color="secondary"
               variant="contained"
+              autoFocus
             >
-              Save
+              Yes, delete
             </Button>
           </DialogActions>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={dialog.delete}
-        onClose={() => setDialog({...dialog, delete: false})}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle>Delete Product?</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this product?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleOnDeleteCancel}
-            variant="contained"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleOnDeleteConfirm}
-            color="secondary"
-            variant="contained"
-            autoFocus
-          >
-            Yes, delete.
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Dialog>
+      )}
     </Paper>
   );
 }

@@ -75,7 +75,7 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-const dialogStates = {
+const initialDialogStates = {
   delete: false,
   edit: false
 }
@@ -86,7 +86,7 @@ export default function EventsDataGrid() {
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [event, setEvent] = useState();
   const [attribute, setAttribute] = useState('');
-  const [dialog, setDialog] = useState(dialogStates);
+  const [dialog, setDialog] = useState(initialDialogStates);
   const classes = useStyles();
 
   const handleChangePage = (event, newPage) => {
@@ -159,23 +159,23 @@ export default function EventsDataGrid() {
   }
 
   const handleOnSaveCancel = () => {
-    setEvent()
-    setDialog({ ...dialog, edit: false })
+    setEvent();
+    closeDialogs();
   }
 
   const handleOnSaveConfirm = () => {
-    console.table({event})
+
     dispatch({
       type: actionTypes.CREATE_OR_UPDATE_EVENT,
       payload: event
     })
 
-    setDialog({ ...dialog, edit: false })
+    closeDialogs();
   }
 
   const handleOnDeleteCancel = () => {
     setEvent();
-    setDialog({...dialog, delete: false});
+    closeDialogs();
   }
 
   const handleOnDeleteConfirm = () => {
@@ -184,13 +184,17 @@ export default function EventsDataGrid() {
       payload: event
     })
     setEvent();
-    setDialog({...dialog, delete: false});
+    closeDialogs();
   }
 
   const availableAttributes = React.useMemo(() => {
     const assignedAttributesList = event?.attributes.map(item => item.name)
     return attributes.filter(item => assignedAttributesList?.includes(item.name) === false)
   }, [event, attributes])
+
+  const closeDialogs = () => {
+    setDialog(initialDialogStates)
+  }
 
   return (
     <Paper className={classes.root}>
@@ -271,55 +275,53 @@ export default function EventsDataGrid() {
         onChangePage={handleChangePage}
         onChangeRowsPerPage={handleChangeRowsPerPage}
       />
-      <Dialog open={dialog.edit} onClose={() => setDialog({...dialog, edit: false})}>
-        <DialogTitle>Edit Event</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="name"
-                label="Name"
-                size="small"
-                value={event?.name || ''}
-                variant="outlined"
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="displayName"
-                label="Display Name"
-                size="small"
-                value={event?.displayName || ''}
-                variant="outlined"
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="description"
-                label="Description"
-                size="small"
-                value={event?.description || ''}
-                variant="outlined"
-                onChange={handleInputChange}
-              />
-            </Grid>
-          </Grid>
-
-          <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
-
+      {(dialog.edit) && (
+        <Dialog open onClose={closeDialogs}>
+          <DialogTitle>Edit Event</DialogTitle>
+          <DialogContent>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <Typography variant="h6">
-                  Assigned Attributes
-                </Typography>
+                <TextField
+                  fullWidth
+                  id="name"
+                  label="Name"
+                  size="small"
+                  value={event?.name || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
               </Grid>
-              {
-                event?.attributes?.map(item => (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  id="displayName"
+                  label="Display Name"
+                  size="small"
+                  value={event?.displayName || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  id="description"
+                  label="Description"
+                  size="small"
+                  value={event?.description || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+            </Grid>
+            <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography variant="h6">
+                    Assigned Attributes
+                  </Typography>
+                </Grid>
+                {event?.attributes?.map(item => (
                   <>
                     <Grid item xs={7}>{item.name}</Grid>
                     <Grid item xs={2}>
@@ -354,87 +356,89 @@ export default function EventsDataGrid() {
                       </div>
                     </Grid>
                   </>
-                ))
-              }
-          </Grid>
-          <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Typography variant="h6">
-                Available Attributes
-              </Typography>
+                ))}
             </Grid>
-            <Grid item xs={11}>
-              <Select
-                className={classes.select}
-                label="Available Attributes"
-                fullWidth
-                size="small"
-                variant="outlined"
-                value={attribute}
-                onChange={handleSelectChange}
-              >
-                {availableAttributes.map(item => (<MenuItem value={item.name}>{item.name}</MenuItem>))}
-              </Select>
-            </Grid>
-            <Grid item xs={1}>
-              <div style={{textAlign: 'right'}}>
-                <Button
-                  className={classes.attributeButton}
-                  variant="outlined"
-                  color="primary"
+            <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Typography variant="h6">
+                  Available Attributes
+                </Typography>
+              </Grid>
+              <Grid item xs={11}>
+                <Select
+                  className={classes.select}
+                  label="Available Attributes"
+                  fullWidth
                   size="small"
-                  onClick={handleAddAttributeClick}
+                  variant="outlined"
+                  value={attribute}
+                  onChange={handleSelectChange}
                 >
-                  +
-                </Button>
-              </div>
+                  {availableAttributes.map(item => (<MenuItem value={item.name}>{item.name}</MenuItem>))}
+                </Select>
+              </Grid>
+              <Grid item xs={1}>
+                <div style={{textAlign: 'right'}}>
+                  <Button
+                    className={classes.attributeButton}
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    onClick={handleAddAttributeClick}
+                  >
+                    +
+                  </Button>
+                </div>
+              </Grid>
             </Grid>
-          </Grid>
-          <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
+            <Divider orientation="horizontal" style={{margin: '1rem 0'}} />
+            <DialogActions>
+              <Button onClick={handleOnSaveCancel} variant="contained">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleOnSaveConfirm}
+                color="primary"
+                variant="contained"
+              >
+                Save
+              </Button>
+            </DialogActions>
+          </DialogContent>
+        </Dialog>
+      )}
+      {(dialog.delete) && (
+        <Dialog
+          open
+          onClose={closeDialogs}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle>Delete Event?</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Are you sure you want to delete this event?
+            </DialogContentText>
+          </DialogContent>
           <DialogActions>
-            <Button onClick={handleOnSaveCancel} variant="contained">
+            <Button
+              onClick={handleOnDeleteCancel}
+              variant="contained"
+            >
               Cancel
             </Button>
             <Button
-              onClick={handleOnSaveConfirm}
-              color="primary"
+              onClick={handleOnDeleteConfirm}
+              color="secondary"
               variant="contained"
+              autoFocus
             >
-              Save
+              Yes, delete
             </Button>
           </DialogActions>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={dialog.delete}
-        onClose={() => setDialog({...dialog, delete: false})}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle>Delete Event?</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this event?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleOnDeleteCancel}
-            variant="contained"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleOnDeleteConfirm}
-            color="secondary"
-            variant="contained"
-            autoFocus
-          >
-            Yes, delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Dialog>
+      )}
     </Paper>
   );
 }

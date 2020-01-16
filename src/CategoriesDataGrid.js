@@ -66,12 +66,17 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const initialDialogStates = {
+  delete: false,
+  edit: false
+}
+
 export default function CategoriesDataGrid() {
   const [{ categories, events }, dispatch] = useContext(AppContext)
   const [page, setPage] =  React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [category, setCategory] = useState()
-  const [dialog, setDialog] = useState({ delete: false, category: false});
+  const [dialog, setDialog] = useState(initialDialogStates);
 
   const classes = useStyles();
 
@@ -107,11 +112,11 @@ export default function CategoriesDataGrid() {
       events: []
     };
     setCategory(product)
-    setDialog({ ...dialog, category: true })
+    setDialog({ ...dialog, edit: true })
   }
 
   const handleEditClick = (rowData) => {
-    setDialog({ ...dialog, category: true })
+    setDialog({ ...dialog, edit: true })
     setCategory(rowData)
   }
 
@@ -121,22 +126,22 @@ export default function CategoriesDataGrid() {
   }
 
   const handleOnSaveCancel = () => {
-    setCategory()
-    setDialog({ ...dialog, category: false })
+    setCategory();
+    closeDialogs();
   }
 
   const handleOnSaveConfirm = () => {
     dispatch({
       type: actionTypes.CREATE_OR_UPDATE_CATEGORY,
       payload: category
-    })
+    });
 
-    setDialog({ ...dialog, category: false })
+    closeDialogs();
   }
 
   const handleOnDeleteCancel = () => {
-    setCategory()
-    setDialog({...dialog, delete: false})
+    setCategory();
+    closeDialogs();
   }
 
   const handleOnDeleteConfirm = () => {
@@ -144,8 +149,12 @@ export default function CategoriesDataGrid() {
       type: actionTypes.DELETE_CATEGORY,
       payload: category
     })
-    setCategory()
-    setDialog({...dialog, delete: false})
+    setCategory();
+    closeDialogs();
+  }
+
+  const closeDialogs = () => {
+    setDialog(initialDialogStates)
   }
 
   return (
@@ -223,100 +232,111 @@ export default function CategoriesDataGrid() {
         onChangePage={handleChangePage}
         onChangeRowsPerPage={handleChangeRowsPerPage}
       />
-      <Dialog open={dialog.category} onClose={() => setDialog({...dialog, category: false})}>
-        <DialogTitle>Edit Category</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                id="name"
-                label="Name"
-                fullWidth
-                value={category?.name || ''}
-                onChange={handleInputChange}
-              />
+      {(dialog.edit) && (
+        <Dialog open onClose={closeDialogs}>
+          <DialogTitle>Edit Category</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  id="name"
+                  label="Name"
+                  fullWidth
+                  size="small"
+                  value={category?.name || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  id="displayName"
+                  label="Display Name"
+                  fullWidth
+                  size="small"
+                  value={category?.displayName || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  id="description"
+                  label="Description"
+                  fullWidth
+                  size="small"
+                  value={category?.description || ''}
+                  variant="outlined"
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <p>Assigned Events</p>
+                {
+                  events?.map(event => (
+                    <div>
+                      <Checkbox
+                        checked={category?.events?.includes(event.name)}
+                        onChange={() => handleAssignedEventChange(event.name)}
+                        color="primary"
+                        inputProps={{ 'aria-label': 'primary checkbox' }}
+                      />
+                      {event.displayName}
+                    </div>
+                  ))
+                }
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                id="displayName"
-                label="Display Name"
-                fullWidth
-                value={category?.displayName || ''}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                id="description"
-                label="Description"
-                fullWidth
-                value={category?.description || ''}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <p>Assigned Events</p>
-              {
-                events?.map(event => (
-                  <div>
-                    <Checkbox
-                      checked={category?.events?.includes(event.name)}
-                      onChange={() => handleAssignedEventChange(event.name)}
-                      color="primary"
-                      inputProps={{ 'aria-label': 'primary checkbox' }}
-                    />
-                    {event.displayName}
-                  </div>
-                ))
-              }
-            </Grid>
-          </Grid>
+            <DialogActions>
+              <Button
+                onClick={handleOnSaveCancel}
+                variant="contained"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleOnSaveConfirm}
+                color="primary"
+                variant="contained"
+              >
+                Save
+              </Button>
+            </DialogActions>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {(dialog.delete) && (
+        <Dialog
+          open
+          onClose={closeDialogs}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle>Delete category?</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Are you sure you want to delete this category?
+            </DialogContentText>
+          </DialogContent>
           <DialogActions>
             <Button
-              onClick={handleOnSaveCancel}
+              onClick={handleOnDeleteCancel}
               variant="contained"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleOnSaveConfirm}
-              color="primary"
+              onClick={handleOnDeleteConfirm}
+              color="secondary"
               variant="contained"
+              autoFocus
             >
-              Save
+              Yes, delete
             </Button>
           </DialogActions>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={dialog.delete}
-        onClose={() => setDialog({...dialog, delete: false})}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle>Delete category?</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            Are you sure you want to delete this category?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleOnDeleteCancel}
-            variant="contained"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleOnDeleteConfirm}
-            color="secondary"
-            variant="contained"
-            autoFocus
-          >
-            Yes, delete.
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Dialog>
+      )}
     </Paper>
   );
 }
